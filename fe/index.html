@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>マイコース - オンライン学習プラットフォーム</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+    <header>
+        <nav class="navbar">
+            <div class="logo"><i class="fa-solid fa-graduation-cap"></i> マイコース</div>
+            
+            <div class="search-bar">
+                <input type="text" placeholder="コースや講師を検索...">
+                <button><i class="fa-solid fa-search"></i></button>
+            </div>
+
+            <div class="hamburger" onclick="toggleMenu()">
+                <i class="fa-solid fa-bars"></i>
+            </div>
+
+            <ul class="nav-links">
+                <li class="nav-item"><a href="#">ホーム</a></li> <li class="nav-item"><a href="#">掲示板</a></li> <li class="nav-item notification-icon">
+                    <i class="fa-regular fa-bell"></i>
+                    <span class="notification-badge">3</span>
+                </li>
+
+                <li><a href="#" class="btn-auth btn-login">ログイン</a></li>
+                <li><a href="#" class="btn-auth btn-register">新規登録</a></li>
+            </ul>
+        </nav>
+    </header>
+
+    <section class="hero">
+        <h1>学びを、もっと自由に</h1>
+        <p>一流の講師による数千のビデオ講義を見つけよう。</p>
+        <a href="#courses" class="btn-cta">今すぐ始める</a>
+    </section>
+
+    <div class="container">
+        
+        <h2 class="section-title">注目のカテゴリー</h2>
+        <div class="categories-grid" id="categories-container">
+            </div>
+
+        <h2 class="section-title" id="courses">人気のコース</h2>
+        <div class="courses-grid" id="popular-courses">
+            </div>
+
+        <h2 class="section-title">新着コース</h2>
+        <div class="courses-grid" id="new-courses">
+            </div>
+
+    </div>
+
+    <footer>
+        <p>&copy; 2025 マイコース. オンライン学習プラットフォーム.</p>
+        <p>お問い合わせ: contact@mycourse.jp</p>
+    </footer>
+
+    <script src="script.js"></script>
+</body>
+</html>
