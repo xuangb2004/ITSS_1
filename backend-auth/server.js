@@ -16,6 +16,8 @@ connectDB();
 
 // Routes
 app.use("/api/auth", require("./routes/authRoutes"));
+app.use("/api/courses", require("./routes/courseRoutes"));
+app.use("/api/categories", require("./routes/categoryRoutes"));
 
 const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => {

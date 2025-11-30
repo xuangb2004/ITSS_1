@@ -1,57 +1,302 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
+// import { courseService, categoryService } from '../services/api'
+import { mockCourseService, mockCategoryService } from '../services/mockData'
 import SignUpModal from './SignUpModal'
 import SignInModal from './SignInModal'
+import CourseCard from './CourseCard'
 
 function Home() {
   const [showSignUp, setShowSignUp] = useState(false)
   const [showSignIn, setShowSignIn] = useState(false)
-  const { user } = useAuth()
+  const [searchQuery, setSearchQuery] = useState('')
+  const [selectedCategory, setSelectedCategory] = useState('すべてのおすすめ')
+  const [recommendedCourses, setRecommendedCourses] = useState([])
+  const [trendingCourses, setTrendingCourses] = useState([])
+  const [filteredRecommended, setFilteredRecommended] = useState([])
+  const [filteredTrending, setFilteredTrending] = useState([])
+  const [categories, setCategories] = useState([])
+  const [loading, setLoading] = useState(true)
+  const { user, signout } = useAuth()
   const navigate = useNavigate()
 
-  // Nếu đã đăng nhập, chuyển đến dashboard
-  if (user) {
-    navigate('/dashboard')
-    return null
+  const handleSignOut = () => {
+    signout()
+    navigate('/')
+    window.location.reload()
   }
+
+  useEffect(() => {
+    loadData()
+  }, [])
+
+  // Filter courses khi selectedCategory thay đổi
+  useEffect(() => {
+    filterCoursesByCategory()
+  }, [selectedCategory, recommendedCourses, trendingCourses])
+
+  const loadData = async () => {
+    try {
+      setLoading(true)
+      const [recommended, trending, categoriesData] = await Promise.all([
+        mockCourseService.getRecommendedCourses(100), // Lấy tất cả để có thể filter
+        mockCourseService.getTrendingCourses(100), // Lấy tất cả để có thể filter
+        mockCategoryService.getAllCategories()
+      ])
+      
+      setRecommendedCourses(recommended.courses || [])
+      setTrendingCourses(trending.courses || [])
+      setCategories(categoriesData.categories || [])
+    } catch (error) {
+      console.error('Error loading data:', error)
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  const filterCoursesByCategory = () => {
+    // Mapping giữa filter button và category thực tế
+    const categoryMap = {
+      'すべてのおすすめ': null,
+      'View All': null,
+      'Adobe Illustrator': 'Adobe Illustrator',
+      'Adobe Photoshop': 'Adobe Photoshop',
+      'デザイン': 'デザイン',
+      'Webプログラミング': 'Webプログラミング',
+      'モバイルプログラミング': 'モバイルプログラミング',
+      'バックエンド開発': 'バックエンド開発',
+    }
+
+    const categoryToFilter = categoryMap[selectedCategory]
+
+    // Filter recommended courses
+    if (categoryToFilter === null) {
+      // Hiển thị tất cả
+      setFilteredRecommended(recommendedCourses)
+    } else if (categoryToFilter === 'Adobe Illustrator' || categoryToFilter === 'Adobe Photoshop') {
+      // Filter theo tag
+      setFilteredRecommended(
+        recommendedCourses.filter(course =>
+          course.tags && course.tags.some(tag => tag.includes(categoryToFilter))
+        )
+      )
+    } else {
+      // Filter theo category
+      setFilteredRecommended(
+        recommendedCourses.filter(course => course.category === categoryToFilter)
+      )
+    }
+
+    // Filter trending courses
+    if (categoryToFilter === null) {
+      // Hiển thị tất cả
+      setFilteredTrending(trendingCourses)
+    } else if (categoryToFilter === 'Adobe Illustrator' || categoryToFilter === 'Adobe Photoshop') {
+      // Filter theo tag
+      setFilteredTrending(
+        trendingCourses.filter(course =>
+          course.tags && course.tags.some(tag => tag.includes(categoryToFilter))
+        )
+      )
+    } else {
+      // Filter theo category
+      setFilteredTrending(
+        trendingCourses.filter(course => course.category === categoryToFilter)
+      )
+    }
+  }
+
+  const handleSearch = async (e) => {
+    e.preventDefault()
+    if (!searchQuery.trim()) return
+    
+    try {
+      const results = await mockCourseService.searchCourses(searchQuery)
+      // Có thể navigate đến trang kết quả tìm kiếm hoặc hiển thị modal
+      console.log('Search results:', results)
+      alert(`Tìm thấy ${results.total} khóa học`)
+    } catch (error) {
+      console.error('Search error:', error)
+    }
+  }
+
+  const categoryFilters = [
+    'すべてのおすすめ',
+    'Adobe Illustrator',
+    'Adobe Photoshop',
+    'デザイン',
+    'Webプログラミング',
+    'モバイルプログラミング',
+    'バックエンド開発',
+    'View All'
+  ]
 
   return (
     <div className="home-wrapper">
       <header className="navbar">
         <div className="navbar-content">
           <div className="logo">
-            <i className="fa-solid fa-cloud"></i>
+            <i className="fa-solid fa-leaf"></i>
             <span>MyCourse.io</span>
           </div>
           
-          <div className="search-bar">
-            <input type="text" placeholder="コースを検索" />
-            <button><i className="fa-solid fa-search"></i></button>
-          </div>
+          {/* Browse Dropdown - chỉ hiển thị khi đã đăng nhập */}
+          {user && (
+            <div className="browse-dropdown">
+              <button className="browse-btn">
+                ブラウズへ
+                <i className="fa-solid fa-chevron-down"></i>
+              </button>
+              <div className="browse-menu">
+                <div className="browse-menu-item">すべてのコース</div>
+                <div className="browse-menu-item">カテゴリー</div>
+                <div className="browse-menu-item">インストラクター</div>
+              </div>
+            </div>
+          )}
+          
+          <form className="search-bar" onSubmit={handleSearch}>
+            <input 
+              type="text" 
+              placeholder="コースを検索" 
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+            />
+            <button type="submit"><i className="fa-solid fa-search"></i></button>
+          </form>
 
           <div className="nav-actions">
             <button className="nav-btn">インストラクターになる</button>
-            <button className="nav-icon"><i className="fa-solid fa-cart-shopping"></i></button>
-            <button className="nav-btn btn-login" onClick={() => setShowSignIn(true)}>
-              ログイン
-            </button>
-            <button className="nav-btn btn-signup" onClick={() => setShowSignUp(true)}>
-              新規登録
-            </button>
+            
+            {user ? (
+              <>
+                {/* Shopping Cart */}
+                <div className="nav-icon-wrapper">
+                  <button className="nav-icon">
+                    <i className="fa-solid fa-cart-shopping"></i>
+                  </button>
+                </div>
+                
+                {/* Notification Bell */}
+                <div className="nav-icon-wrapper">
+                  <button className="nav-icon">
+                    <i className="fa-solid fa-bell"></i>
+                  </button>
+                </div>
+                
+                {/* User Avatar */}
+                <div className="user-avatar-wrapper">
+                  <button className="user-avatar" onClick={() => navigate('/dashboard')}>
+                    {user.name ? (
+                      <div className="avatar-initials">
+                        {user.name.charAt(0).toUpperCase()}
+                      </div>
+                    ) : (
+                      <i className="fa-solid fa-user"></i>
+                    )}
+                  </button>
+                </div>
+              </>
+            ) : (
+              <>
+                <button className="nav-btn btn-login" onClick={() => setShowSignIn(true)}>
+                  ログイン
+                </button>
+                <button className="nav-btn btn-signup" onClick={() => setShowSignUp(true)}>
+                  新規登録
+                </button>
+              </>
+            )}
           </div>
         </div>
       </header>
 
       <main className="home-main">
+        {/* Hero Section */}
         <div className="hero-section">
+          <div className="hero-images">
+            <div className="hero-image-item">
+              <img src="https://images.unsplash.com/photo-1522202176988-66273c2fd55f?w=300" alt="Learning" />
+            </div>
+            <div className="hero-image-item">
+              <img src="https://images.unsplash.com/photo-1516321318423-f06f85e504b3?w=300" alt="Workspace" />
+            </div>
+            <div className="hero-image-item">
+              <img src="https://images.unsplash.com/photo-1485846234645-a62644f84728?w=300" alt="Film" />
+            </div>
+            <div className="hero-image-item">
+              <img src="https://images.unsplash.com/photo-1454165804606-c3d57bc86b40?w=300" alt="Business" />
+            </div>
+            <div className="hero-image-item">
+              <img src="https://images.unsplash.com/photo-1522071820081-009f0129c71c?w=300" alt="Team" />
+            </div>
+            <div className="hero-image-item">
+              <img src="https://images.unsplash.com/photo-1509228468518-180dd4864904?w=300" alt="Writing" />
+            </div>
+          </div>
           <div className="hero-content">
-            <h1>毎日新し</h1>
-            <h2>プロになって、世界</h2>
-            <p>コースを最後までやり</p>
-            <p>君にぴったりのベストを知</p>
+            <h1>毎日新しいことを学ぼう。</h1>
+            <h2>プロフェッショナルになり、世界へ羽ばたこう。</h2>
           </div>
         </div>
+
+        {/* Category Filters */}
+        <div className="category-filters">
+          {categoryFilters.map((category) => (
+            <button
+              key={category}
+              className={`filter-btn ${selectedCategory === category ? 'active' : ''}`}
+              onClick={() => {
+                setSelectedCategory(category)
+              }}
+            >
+              {category}
+            </button>
+          ))}
+        </div>
+
+        {/* Recommended Courses */}
+        <section className="courses-section">
+          <div className="section-header">
+            <h2>あなたの興味に基づいたおすすめ</h2>
+            <p>あなたにぴったりのコンテンツ、おすすめのトップピックです。</p>
+          </div>
+          {loading ? (
+            <div className="loading">読み込み中...</div>
+          ) : (
+            <div className="courses-grid">
+              {filteredRecommended.length > 0 ? (
+                filteredRecommended.map((course) => (
+                  <CourseCard key={course._id} course={course} />
+                ))
+              ) : (
+                <p className="no-courses">おすすめのコースがありません</p>
+              )}
+            </div>
+          )}
+        </section>
+
+        {/* Trending Courses */}
+        <section className="courses-section">
+          <div className="section-header">
+            <h2>トレンドのコース</h2>
+            <p>あなたにぴったりのコンテンツ、おすすめのトップピックです。</p>
+          </div>
+          {loading ? (
+            <div className="loading">読み込み中...</div>
+          ) : (
+            <div className="courses-grid">
+              {filteredTrending.length > 0 ? (
+                filteredTrending.map((course) => (
+                  <CourseCard key={course._id} course={course} />
+                ))
+              ) : (
+                <p className="no-courses">トレンドのコースがありません</p>
+              )}
+            </div>
+          )}
+        </section>
       </main>
 
       {showSignUp && (

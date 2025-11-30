@@ -36,12 +36,12 @@ function SignInModal({ onClose, onSwitchToSignUp }) {
 
     if (result.success) {
       onClose()
-      navigate('/dashboard')
+      // Reload trang để cập nhật UI
+      window.location.reload()
     } else {
       setError(result.message)
+      setLoading(false)
     }
-
-    setLoading(false)
   }
 
   return (
@@ -133,4 +133,3 @@ function SignInModal({ onClose, onSwitchToSignUp }) {
 }
 
 export default SignInModal
-
