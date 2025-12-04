@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
-// import { courseService, categoryService } from '../services/api'
+import NotificationDropdown from './NotificationDropdown' 
 import { mockCourseService, mockCategoryService } from '../services/mockData'
 import SignUpModal from './SignUpModal'
 import SignInModal from './SignInModal'
@@ -40,8 +40,8 @@ function Home() {
     try {
       setLoading(true)
       const [recommended, trending, categoriesData] = await Promise.all([
-        mockCourseService.getRecommendedCourses(100), // Lấy tất cả để có thể filter
-        mockCourseService.getTrendingCourses(100), // Lấy tất cả để có thể filter
+        mockCourseService.getRecommendedCourses(100),
+        mockCourseService.getTrendingCourses(100),
         mockCategoryService.getAllCategories()
       ])
       
@@ -56,7 +56,6 @@ function Home() {
   }
 
   const filterCoursesByCategory = () => {
-    // Mapping giữa filter button và category thực tế
     const categoryMap = {
       'すべてのおすすめ': null,
       'View All': null,
@@ -72,17 +71,14 @@ function Home() {
 
     // Filter recommended courses
     if (categoryToFilter === null) {
-      // Hiển thị tất cả
       setFilteredRecommended(recommendedCourses)
     } else if (categoryToFilter === 'Adobe Illustrator' || categoryToFilter === 'Adobe Photoshop') {
-      // Filter theo tag
       setFilteredRecommended(
         recommendedCourses.filter(course =>
           course.tags && course.tags.some(tag => tag.includes(categoryToFilter))
         )
       )
     } else {
-      // Filter theo category
       setFilteredRecommended(
         recommendedCourses.filter(course => course.category === categoryToFilter)
       )
@@ -90,17 +86,14 @@ function Home() {
 
     // Filter trending courses
     if (categoryToFilter === null) {
-      // Hiển thị tất cả
       setFilteredTrending(trendingCourses)
     } else if (categoryToFilter === 'Adobe Illustrator' || categoryToFilter === 'Adobe Photoshop') {
-      // Filter theo tag
       setFilteredTrending(
         trendingCourses.filter(course =>
           course.tags && course.tags.some(tag => tag.includes(categoryToFilter))
         )
       )
     } else {
-      // Filter theo category
       setFilteredTrending(
         trendingCourses.filter(course => course.category === categoryToFilter)
       )
@@ -113,9 +106,8 @@ function Home() {
     
     try {
       const results = await mockCourseService.searchCourses(searchQuery)
-      // Có thể navigate đến trang kết quả tìm kiếm hoặc hiển thị modal
       console.log('Search results:', results)
-      alert(`Tìm thấy ${results.total} khóa học`)
+      alert(`Found ${results.total} courses`)
     } catch (error) {
       console.error('Search error:', error)
     }
@@ -136,12 +128,16 @@ function Home() {
     <div className="home-wrapper">
       <header className="navbar">
         <div className="navbar-content">
-          <div className="logo">
+          {/* CẬP NHẬT PHẦN LOGO TẠI ĐÂY */}
+          <div 
+            className="logo" 
+            onClick={() => navigate('/')} 
+            style={{ cursor: 'pointer' }}
+          >
             <i className="fa-solid fa-leaf"></i>
             <span>MyCourse.io</span>
           </div>
           
-          {/* Browse Dropdown - chỉ hiển thị khi đã đăng nhập */}
           {user && (
             <div className="browse-dropdown">
               <button className="browse-btn">
@@ -168,7 +164,13 @@ function Home() {
 
           <div className="nav-actions">
             <button className="nav-btn">インストラクターになる</button>
-            
+            <button 
+              className="nav-icon" 
+              onClick={() => navigate('/forum')}
+              title="フォーラム"
+            >
+              <i className="fa-solid fa-comments"></i>
+            </button>
             {user ? (
               <>
                 {/* Shopping Cart */}
@@ -179,11 +181,7 @@ function Home() {
                 </div>
                 
                 {/* Notification Bell */}
-                <div className="nav-icon-wrapper">
-                  <button className="nav-icon">
-                    <i className="fa-solid fa-bell"></i>
-                  </button>
-                </div>
+                <NotificationDropdown />
                 
                 {/* User Avatar */}
                 <div className="user-avatar-wrapper">
@@ -323,4 +321,3 @@ function Home() {
 }
 
 export default Home
-

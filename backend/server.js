@@ -1,18 +1,22 @@
-// backend-auth/server.js
+const dotenv = require("dotenv");
+dotenv.config(); // MUST BE THE FIRST THING
+
 const express = require("express");
 const cors = require("cors");
-const dotenv = require("dotenv");
+const path = require("path");
+// remove connectDB line if it exists, since we use the pool in controller directly
 
-dotenv.config();
 const app = express();
 
+// Middleware
 app.use(cors());
 app.use(express.json());
-
+app.use("/uploads", express.static(path.join(__dirname, "uploads")));
 // Routes
 app.use("/api/auth", require("./routes/authRoutes"));
-
-const PORT = process.env.PORT || 5001; // Đảm bảo PORT khớp với frontend (5001)
+app.use("/api/forum", require("./routes/forumRoutes"));
+app.use("/api/notifications", require("./routes/notificationRoutes"));
+const PORT = process.env.PORT || 5001;
 app.listen(PORT, () => {
-  console.log(`🚀 Server chạy trên cổng ${PORT} (SQL Mode)`);
+  console.log(`🚀 Server running on port ${PORT}`);
 });

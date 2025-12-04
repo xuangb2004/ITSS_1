@@ -1,101 +1,88 @@
-import axios from 'axios'
+import axios from 'axios';
 
-const BASE_URL = 'http://localhost:5001/api'
+// Chúng ta trỏ về '/api' để có thể gọi được cả /auth và /forum
+const API_URL = 'http://localhost:5001/api';
 
-// Tạo instance axios chung
-const createApiInstance = (baseURL) => {
-  const instance = axios.create({
-    baseURL,
-    headers: {
-      'Content-Type': 'application/json',
-    },
-  })
+const api = axios.create({
+  baseURL: API_URL,
+  headers: {
+    'Content-Type': 'application/json',
+  },
+});
 
-  // Thêm token vào header nếu có
-  instance.interceptors.request.use(
-    (config) => {
-      const token = localStorage.getItem('token')
-      if (token) {
-        config.headers.Authorization = `Bearer ${token}`
-      }
-      return config
-    },
-    (error) => {
-      return Promise.reject(error)
+// Interceptor để tự động thêm Token vào header mỗi khi gọi API
+api.interceptors.request.use(
+  (config) => {
+    const token = localStorage.getItem('token');
+    if (token) {
+      config.headers.Authorization = `Bearer ${token}`;
     }
-  )
+    return config;
+  },
+  (error) => {
+    return Promise.reject(error);
+  }
+);
 
-  return instance
-}
-
-// API instances
-const authApi = createApiInstance(`${BASE_URL}/auth`)
-const coursesApi = createApiInstance(`${BASE_URL}/courses`)
-const categoriesApi = createApiInstance(`${BASE_URL}/categories`)
-
-// Auth Service
+// Service cho xác thực (Auth)
 export const authService = {
-  // Đăng ký
   signup: async (data) => {
-    const response = await authApi.post('/signup', data)
-    return response.data
+    // Gọi đến /api/auth/signup
+    const response = await api.post('/auth/signup', data);
+    return response.data;
   },
-
-  // Đăng nhập
   signin: async (data) => {
-    const response = await authApi.post('/signin', data)
-    return response.data
+    // Gọi đến /api/auth/signin
+    const response = await api.post('/auth/signin', data);
+    return response.data;
   },
-}
+};
 
-// Course Service
-export const courseService = {
-  // Lấy tất cả khóa học
-  getAllCourses: async (params = {}) => {
-    const response = await coursesApi.get('/', { params })
-    return response.data
+// Service cho diễn đàn (Forum)
+export const forumService = {
+  getTopics: async () => {
+    const response = await api.get('/forum/topics');
+    return response.data;
   },
-
-  // Lấy khóa học được đề xuất
-  getRecommendedCourses: async (limit = 4) => {
-    const response = await coursesApi.get('/recommended', { params: { limit } })
-    return response.data
+  getTopicDetails: async (topicId) => {
+    const response = await api.get(`/forum/topic/${topicId}`);
+    return response.data;
   },
-
-  // Lấy khóa học trending
-  getTrendingCourses: async (limit = 4) => {
-    const response = await coursesApi.get('/trending', { params: { limit } })
-    return response.data
-  },
-
-  // Tìm kiếm khóa học
-  searchCourses: async (query, params = {}) => {
-    const response = await coursesApi.get('/search', { 
-      params: { q: query, ...params } 
-    })
-    return response.data
+  createTopic: async (formData) => {
+    // formData ở đây là đối tượng FormData, không phải JSON object
+    const response = await api.post('/forum/topic', formData, {
+      headers: { "Content-Type": "multipart/form-data" },
+    });
+    return response.data;
   },
 
-  // Lấy chi tiết khóa học
-  getCourseById: async (id) => {
-    const response = await coursesApi.get(`/${id}`)
-    return response.data
+  reply: async (topicId, formData) => {
+    const response = await api.post(`/forum/topic/${topicId}/reply`, formData, {
+      headers: { "Content-Type": "multipart/form-data" },
+    });
+    return response.data;
   },
-}
-
-// Category Service
-export const categoryService = {
-  // Lấy tất cả danh mục
-  getAllCategories: async () => {
-    const response = await categoriesApi.get('/')
-    return response.data
+  toggleLike: async (postId) => {
+    const response = await api.post(`/forum/post/${postId}/like`);
+    return response.data;
   },
-
-  // Lấy danh mục theo slug
-  getCategoryBySlug: async (slug) => {
-    const response = await categoriesApi.get(`/${slug}`)
-    return response.data
+  deleteTopic: async (topicId) => {
+    const response = await api.delete(`/forum/topic/${topicId}`);
+    return response.data;
   },
-}
-
-export default authApi
+  deletePost: async (postId) => {
+    const response = await api.delete(`/forum/post/${postId}`);
+    return response.data;
+  }
+};
+export const notificationService = {
+  getAll: async () => {
+    const response = await api.get('/notifications');
+    return response.data;
+  },
+  markRead: async (notifId) => {
+    const response = await api.put(`/notifications/${notifId}/read`);
+    return response.data;
+  }
+};
+export default api;

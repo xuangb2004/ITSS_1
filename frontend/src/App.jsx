@@ -2,6 +2,7 @@ import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-d
 import { useAuth } from './context/AuthContext'
 import Home from './components/Home'
 import Dashboard from './components/Dashboard'
+import Forum from './components/Forum'
 
 function PrivateRoute({ children }) {
   const { user } = useAuth()
@@ -20,7 +21,9 @@ function App() {
               <Dashboard />
             </PrivateRoute>
           }
+          
         />
+        <Route path="/forum" element={<Forum />} />
       </Routes>
     </Router>
   )

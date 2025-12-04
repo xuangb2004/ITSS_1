@@ -127,7 +127,7 @@ CREATE TABLE forum_posts (
     FOREIGN KEY (topic_id) REFERENCES forum_topics(topic_id) ON DELETE CASCADE,
     FOREIGN KEY (user_id) REFERENCES users(user_id) ON DELETE CASCADE
 );
-
+ALTER TABLE forum_posts ADD COLUMN attachment_url TEXT DEFAULT NULL;
 -- Notifications
 CREATE TABLE notifications (
     notification_id INT AUTO_INCREMENT PRIMARY KEY,
@@ -138,6 +138,16 @@ CREATE TABLE notifications (
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY (user_id) REFERENCES users(user_id) ON DELETE CASCADE
 );
+CREATE TABLE IF NOT EXISTS forum_post_likes (
+    like_id INT AUTO_INCREMENT PRIMARY KEY,
+    user_id INT NOT NULL,
+    post_id INT NOT NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    UNIQUE(user_id, post_id), -- Một người chỉ like 1 lần/bài
+    FOREIGN KEY (user_id) REFERENCES users(user_id) ON DELETE CASCADE,
+    FOREIGN KEY (post_id) REFERENCES forum_posts(post_id) ON DELETE CASCADE
+);
+
 
 
 -- Indexes
