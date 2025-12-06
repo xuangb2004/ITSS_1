@@ -16,6 +16,7 @@ app.use("/uploads", express.static(path.join(__dirname, "uploads")));
 app.use("/api/auth", require("./routes/authRoutes"));
 app.use("/api/forum", require("./routes/forumRoutes"));
 app.use("/api/notifications", require("./routes/notificationRoutes"));
+app.use("/api/search", require("./routes/searchRoutes"));
 const PORT = process.env.PORT || 5001;
 app.listen(PORT, () => {
   console.log(`🚀 Server running on port ${PORT}`);
