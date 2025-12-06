@@ -10,7 +10,7 @@ CREATE TABLE users (
     name VARCHAR(100) NOT NULL,
     email VARCHAR(150) UNIQUE NOT NULL,
     password_hash TEXT NOT NULL,
-    role VARCHAR(20) CHECK (role IN ('student','instructor','admin')) DEFAULT 'student',
+    role VARCHAR(20) CHECK (role IN ('student', 'admin')) DEFAULT 'student',
     avatar_url TEXT,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
@@ -18,9 +18,19 @@ CREATE TABLE users (
 -- Instructors
 CREATE TABLE instructors (
     instructor_id SERIAL PRIMARY KEY,
-    user_id INT REFERENCES users(user_id) ON DELETE CASCADE,
+    name VARCHAR(100) NOT NULL,
+    email VARCHAR(150) UNIQUE NOT NULL,
+    password_hash TEXT NOT NULL,
     bio TEXT,
-    expertise VARCHAR(255)
+    expertise VARCHAR(255),
+    avatar_url TEXT,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+-- Categories: Chủ đề chính của một khóa học
+CREATE TABLE categories (
+    category_id SERIAL PRIMARY KEY,
+    name VARCHAR(100) UNIQUE NOT NULL
 );
 
 -- Courses
@@ -32,7 +42,21 @@ CREATE TABLE courses (
     level VARCHAR(20) CHECK (level IN ('beginner','intermediate','advanced')) DEFAULT 'beginner',
     price NUMERIC(10,2) DEFAULT 0,
     thumbnail TEXT,
+    category_id INT REFERENCES categories(category_id) ON DELETE SET NULL,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+-- Tags: Nhãn cho khóa học, một khóa học có thể có nhiều nhãn
+CREATE TABLE tags (
+    tag_id SERIAL PRIMARY KEY,
+    name VARCHAR(50) UNIQUE NOT NULL
+);
+
+-- Liên kết N-N giữa course và tag
+CREATE TABLE course_tags (
+    course_id INT REFERENCES courses(course_id) ON DELETE CASCADE,
+    tag_id INT REFERENCES tags(tag_id) ON DELETE CASCADE,
+    PRIMARY KEY (course_id, tag_id)
 );
 
 -- Lessons
@@ -149,3 +173,34 @@ CREATE INDEX idx_forum_posts_topic ON forum_posts(topic_id);
 
 -- Notifications
 CREATE INDEX idx_notifications_user ON notifications(user_id);
+
+-- Index phục vụ tìm kiếm khóa học theo từ khóa
+CREATE INDEX idx_courses_ft
+ON courses USING GIN(to_tsvector('simple', title || ' ' || description));
+
+-- Index phục vụ tìm kiếm giáo viên
+CREATE INDEX idx_instructors_name_ft
+ON instructors USING GIN(to_tsvector('simple', name));
+
+-- Index cho course và category
+CREATE INDEX idx_courses_category ON courses(category_id);
+
+-- Index cho course và level
+CREATE INDEX idx_courses_level ON courses(level);
+
+-- Index cho course và price
+CREATE INDEX idx_courses_price ON courses(price);
+
+-- Index cho tag
+CREATE INDEX idx_course_tags ON course_tags(tag_id);
+
+-- Tính enrollments hỗ trợ sắp xếp theo phổ biến
+CREATE VIEW course_popularity AS
+SELECT course_id, COUNT(*) AS enroll_count
+FROM enrollments
+GROUP BY course_id;
+
+
+
+
+
