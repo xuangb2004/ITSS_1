@@ -1,0 +1,238 @@
+.mycourses-page {
+  min-height: 100vh;
+  background: #f5f5f7;
+  padding: 24px 0 40px;
+  font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI",
+    "ヒラギノ角ゴ ProN", "Meiryo", sans-serif;
+}
+
+.mycourses-header {
+  max-width: 1100px;
+  margin: 0 auto 16px;
+  padding: 0 16px;
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 16px;
+}
+
+.mycourses-title {
+  font-size: 26px;
+  font-weight: 700;
+  margin-bottom: 4px;
+}
+
+.mycourses-subtitle {
+  font-size: 14px;
+  color: #666;
+}
+
+.mycourses-controls {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+}
+
+.mycourses-content {
+  max-width: 1100px;
+  margin: 0 auto;
+  padding: 0 16px;
+}
+
+.mycourses-empty {
+  font-size: 14px;
+  color: #555;
+}
+
+.mycourses-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  gap: 16px;
+}
+
+/* Tabs */
+.tabs-wrapper {
+  display: inline-flex;
+  background: #e5e7eb;
+  border-radius: 999px;
+  padding: 3px;
+}
+
+.tab-item {
+  border: none;
+  background: transparent;
+  padding: 6px 14px;
+  border-radius: 999px;
+  font-size: 13px;
+  cursor: pointer;
+  color: #555;
+}
+
+.tab-item-active {
+  background: #ffffff;
+  color: #6d28d9;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.12);
+}
+
+/* Sort select */
+.sort-select {
+  font-size: 13px;
+  padding: 6px 10px;
+  border-radius: 999px;
+  border: 1px solid #e5e7eb;
+  background: #ffffff;
+}
+
+/* Course card */
+.course-card {
+  background: #ffffff;
+  border-radius: 16px;
+  overflow: hidden;
+  box-shadow: 0 1px 5px rgba(0, 0, 0, 0.08);
+  display: flex;
+  flex-direction: column;
+}
+
+.course-thumbnail-wrapper {
+  position: relative;
+}
+
+.course-thumbnail {
+  width: 100%;
+  height: 150px;
+  object-fit: cover;
+  display: block;
+}
+
+.course-badge-completed {
+  position: absolute;
+  bottom: 8px;
+  right: 8px;
+  font-size: 11px;
+  background: #10b981;
+  color: #fff;
+  padding: 3px 8px;
+  border-radius: 999px;
+}
+
+.course-body {
+  padding: 10px 12px 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.course-title {
+  font-size: 14px;
+  font-weight: 600;
+  margin: 0;
+}
+
+.course-instructor {
+  font-size: 12px;
+  color: #6b7280;
+}
+
+/* 説明文 */
+.course-desc {
+  margin-top: 4px;
+  font-size: 12px;
+  color: #4b5563;
+  line-height: 1.4;
+  max-height: 3.2em;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* Rating */
+.course-rating-row {
+  margin-top: 6px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.course-rating-stars {
+  display: flex;
+  gap: 2px;
+  font-size: 12px;
+}
+
+.star-full {
+  color: #fbbf24;
+}
+
+.star-half {
+  color: #facc15;
+  opacity: 0.7;
+}
+
+.star-empty {
+  color: #d1d5db;
+}
+
+.course-rating-text {
+  font-size: 12px;
+  color: #6b7280;
+}
+
+.course-rating-count {
+  font-size: 11px;
+  color: #9ca3af;
+}
+
+/* Progress */
+.course-progress-info {
+  margin-top: 6px;
+  font-size: 11px;
+  color: #6b7280;
+  display: flex;
+  justify-content: space-between;
+}
+
+.course-progress-bar {
+  margin-top: 4px;
+  width: 100%;
+  height: 6px;
+  border-radius: 999px;
+  background: #e5e7eb;
+  overflow: hidden;
+}
+
+.course-progress-bar-inner {
+  height: 100%;
+  background: #6366f1;
+}
+
+/* 最終アクセス + footer */
+.course-last-access {
+  margin-top: 4px;
+  font-size: 11px;
+  color: #9ca3af;
+}
+
+.course-footer {
+  margin-top: 8px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.course-continue-btn {
+  border: none;
+  background: #7c3aed;
+  color: #ffffff;
+  font-size: 12px;
+  padding: 6px 12px;
+  border-radius: 999px;
+  cursor: pointer;
+}
+
+.course-continue-btn:hover {
+  background: #6d28d9;
+}
+
+.course-next-lesson {
+  font-size: 11px;
+  color: #6b7280;
+}

@@ -8,7 +8,10 @@ import SignInModal from './SignInModal'
 import CourseCard from './CourseCard'
 import SearchBar from './SearchBar'
 
+
+
 function Home() {
+  const navigate = useNavigate()
   const [showSignUp, setShowSignUp] = useState(false)
   const [showSignIn, setShowSignIn] = useState(false)
   const [searchQuery, setSearchQuery] = useState('')
@@ -20,7 +23,7 @@ function Home() {
   const [categories, setCategories] = useState([])
   const [loading, setLoading] = useState(true)
   const { user, signout } = useAuth()
-  const navigate = useNavigate()
+  
 
   const handleSignOut = () => {
     signout()
@@ -146,13 +149,22 @@ function Home() {
                 ブラウズへ
                 <i className="fa-solid fa-chevron-down"></i>
               </button>
+
               <div className="browse-menu">
                 <div className="browse-menu-item">すべてのコース</div>
                 <div className="browse-menu-item">カテゴリー</div>
                 <div className="browse-menu-item">インストラクター</div>
+
+                <div
+                  className="browse-menu-item"
+                  onClick={() => navigate('/my-courses')}
+                >
+                  マイコース
+                </div>
               </div>
             </div>
           )}
+
           
           <SearchBar />
 
