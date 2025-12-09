@@ -1,6 +1,6 @@
 import axios from 'axios';
 
-// Chúng ta trỏ về '/api' để có thể gọi được cả /auth và /forum
+// Chúng ta trỏ về '/api' để có thể gọi được cả /auth, /forum, /courses...
 const API_URL = 'http://localhost:5001/api';
 
 const api = axios.create({
@@ -27,12 +27,10 @@ api.interceptors.request.use(
 // Service cho xác thực (Auth)
 export const authService = {
   signup: async (data) => {
-    // Gọi đến /api/auth/signup
     const response = await api.post('/auth/signup', data);
     return response.data;
   },
   signin: async (data) => {
-    // Gọi đến /api/auth/signin
     const response = await api.post('/auth/signin', data);
     return response.data;
   },
@@ -49,13 +47,11 @@ export const forumService = {
     return response.data;
   },
   createTopic: async (formData) => {
-    // formData ở đây là đối tượng FormData, không phải JSON object
     const response = await api.post('/forum/topic', formData, {
       headers: { "Content-Type": "multipart/form-data" },
     });
     return response.data;
   },
-
   reply: async (topicId, formData) => {
     const response = await api.post(`/forum/topic/${topicId}/reply`, formData, {
       headers: { "Content-Type": "multipart/form-data" },
@@ -75,6 +71,8 @@ export const forumService = {
     return response.data;
   }
 };
+
+// Service cho thông báo (Notification)
 export const notificationService = {
   getAll: async () => {
     const response = await api.get('/notifications');
@@ -85,4 +83,30 @@ export const notificationService = {
     return response.data;
   }
 };
+
+// Service cho Khóa học (Courses) - QUAN TRỌNG CHO TRANG HOME
+export const courseService = {
+  getRecommendedCourses: async (limit = 4) => {
+    const response = await api.get(`/courses/recommended?limit=${limit}`);
+    return response.data; 
+  },
+  getTrendingCourses: async (limit = 4) => {
+    const response = await api.get(`/courses/trending?limit=${limit}`);
+    return response.data;
+  },
+  searchCourses: async (query) => {
+    // API search dùng param 'search' như đã sửa trong controller
+    const response = await api.get(`/courses/search?search=${query}`);
+    return response.data; 
+  }
+};
+
+// Service cho Danh mục (Categories)
+export const categoryService = {
+  getAllCategories: async () => {
+    const response = await api.get('/categories');
+    return response.data;
+  }
+};
+
 export default api;

@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
 import NotificationDropdown from './NotificationDropdown' 
-import { mockCourseService, mockCategoryService } from '../services/mockData'
+import { courseService, categoryService } from '../services/api' // Import API thật
 import SignUpModal from './SignUpModal'
 import SignInModal from './SignInModal'
 import CourseCard from './CourseCard'
@@ -40,10 +40,11 @@ function Home() {
   const loadData = async () => {
     try {
       setLoading(true)
+      // --- SỬA Ở ĐÂY: Dùng courseService/categoryService thay vì mock ---
       const [recommended, trending, categoriesData] = await Promise.all([
-        mockCourseService.getRecommendedCourses(100),
-        mockCourseService.getTrendingCourses(100),
-        mockCategoryService.getAllCategories()
+        courseService.getRecommendedCourses(100), 
+        courseService.getTrendingCourses(100), 
+        categoryService.getAllCategories()
       ])
       
       setRecommendedCourses(recommended.courses || [])
@@ -106,7 +107,8 @@ function Home() {
     if (!searchQuery.trim()) return
     
     try {
-      const results = await mockCourseService.searchCourses(searchQuery)
+      // --- SỬA Ở ĐÂY: Dùng courseService ---
+      const results = await courseService.searchCourses(searchQuery)
       console.log('Search results:', results)
       alert(`Found ${results.total} courses`)
     } catch (error) {
@@ -129,7 +131,6 @@ function Home() {
     <div className="home-wrapper">
       <header className="navbar">
         <div className="navbar-content">
-          {/* CẬP NHẬT PHẦN LOGO TẠI ĐÂY */}
           <div 
             className="logo" 
             onClick={() => navigate('/')} 
@@ -166,17 +167,14 @@ function Home() {
             </button>
             {user ? (
               <>
-                {/* Shopping Cart */}
                 <div className="nav-icon-wrapper">
                   <button className="nav-icon">
                     <i className="fa-solid fa-cart-shopping"></i>
                   </button>
                 </div>
                 
-                {/* Notification Bell */}
                 <NotificationDropdown />
                 
-                {/* User Avatar */}
                 <div className="user-avatar-wrapper">
                   <button className="user-avatar" onClick={() => navigate('/dashboard')}>
                     {user.name ? (
@@ -204,7 +202,6 @@ function Home() {
       </header>
 
       <main className="home-main">
-        {/* Hero Section */}
         <div className="hero-section">
           <div className="hero-images">
             <div className="hero-image-item">
@@ -232,7 +229,6 @@ function Home() {
           </div>
         </div>
 
-        {/* Category Filters */}
         <div className="category-filters">
           {categoryFilters.map((category) => (
             <button
@@ -247,7 +243,6 @@ function Home() {
           ))}
         </div>
 
-        {/* Recommended Courses */}
         <section className="courses-section">
           <div className="section-header">
             <h2>あなたの興味に基づいたおすすめ</h2>
@@ -268,7 +263,6 @@ function Home() {
           )}
         </section>
 
-        {/* Trending Courses */}
         <section className="courses-section">
           <div className="section-header">
             <h2>トレンドのコース</h2>

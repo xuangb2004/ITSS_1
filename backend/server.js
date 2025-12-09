@@ -1,10 +1,10 @@
 const dotenv = require("dotenv");
-dotenv.config(); // MUST BE THE FIRST THING
+dotenv.config(); 
 
 const express = require("express");
 const cors = require("cors");
 const path = require("path");
-// remove connectDB line if it exists, since we use the pool in controller directly
+const db = require("./config/db"); // Import để đảm bảo DB kết nối
 
 const app = express();
 
@@ -12,10 +12,16 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 app.use("/uploads", express.static(path.join(__dirname, "uploads")));
-// Routes
+
+// --- ĐĂNG KÝ ROUTES ---
 app.use("/api/auth", require("./routes/authRoutes"));
 app.use("/api/forum", require("./routes/forumRoutes"));
 app.use("/api/notifications", require("./routes/notificationRoutes"));
+
+// Thêm 2 route quan trọng này cho trang Home:
+app.use("/api/courses", require("./routes/courseRoutes"));
+app.use("/api/categories", require("./routes/categoryRoutes"));
+
 app.use("/api/search", require("./routes/searchRoutes"));
 const PORT = process.env.PORT || 5001;
 app.listen(PORT, () => {
