@@ -6,6 +6,7 @@ import { mockCourseService, mockCategoryService } from '../services/mockData'
 import SignUpModal from './SignUpModal'
 import SignInModal from './SignInModal'
 import CourseCard from './CourseCard'
+import SearchBar from './SearchBar'
 
 function Home() {
   const [showSignUp, setShowSignUp] = useState(false)
@@ -152,15 +153,7 @@ function Home() {
             </div>
           )}
           
-          <form className="search-bar" onSubmit={handleSearch}>
-            <input 
-              type="text" 
-              placeholder="コースを検索" 
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-            />
-            <button type="submit"><i className="fa-solid fa-search"></i></button>
-          </form>
+          <SearchBar />
 
           <div className="nav-actions">
             <button className="nav-btn">インストラクターになる</button>
