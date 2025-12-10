@@ -1,6 +1,5 @@
 import axios from 'axios';
 
-// Chúng ta trỏ về '/api' để có thể gọi được cả /auth, /forum, /courses...
 const API_URL = 'http://localhost:5001/api';
 
 const api = axios.create({
@@ -10,7 +9,6 @@ const api = axios.create({
   },
 });
 
-// Interceptor để tự động thêm Token vào header mỗi khi gọi API
 api.interceptors.request.use(
   (config) => {
     const token = localStorage.getItem('token');
@@ -24,7 +22,6 @@ api.interceptors.request.use(
   }
 );
 
-// Service cho xác thực (Auth)
 export const authService = {
   signup: async (data) => {
     const response = await api.post('/auth/signup', data);
@@ -36,7 +33,6 @@ export const authService = {
   },
 };
 
-// Service cho diễn đàn (Forum)
 export const forumService = {
   getTopics: async () => {
     const response = await api.get('/forum/topics');
@@ -72,7 +68,6 @@ export const forumService = {
   }
 };
 
-// Service cho thông báo (Notification)
 export const notificationService = {
   getAll: async () => {
     const response = await api.get('/notifications');
@@ -84,7 +79,6 @@ export const notificationService = {
   }
 };
 
-// Service cho Khóa học (Courses) - QUAN TRỌNG CHO TRANG HOME
 export const courseService = {
   getRecommendedCourses: async (limit = 4) => {
     const response = await api.get(`/courses/recommended?limit=${limit}`);
@@ -95,16 +89,45 @@ export const courseService = {
     return response.data;
   },
   searchCourses: async (query) => {
-    // API search dùng param 'search' như đã sửa trong controller
     const response = await api.get(`/courses/search?search=${query}`);
     return response.data; 
+  },
+  getCourseById: async (id) => {
+    const response = await api.get(`/courses/${id}`);
+    return response.data;
   }
 };
 
-// Service cho Danh mục (Categories)
 export const categoryService = {
   getAllCategories: async () => {
     const response = await api.get('/categories');
+    return response.data;
+  }
+};
+
+// --- MỚI THÊM ---
+export const cartService = {
+  addToCart: async (courseId) => {
+    const response = await api.post('/cart', { courseId });
+    return response.data;
+  },
+  getCart: async () => {
+    const response = await api.get('/cart');
+    return response.data;
+  },
+  removeFromCart: async (courseId) => {
+    const response = await api.delete(`/cart/${courseId}`);
+    return response.data;
+  }
+};
+
+export const enrollmentService = {
+  enroll: async (courseId) => {
+    const response = await api.post('/enrollments', { courseId });
+    return response.data;
+  },
+  getMyCourses: async () => {
+    const response = await api.get('/enrollments');
     return response.data;
   }
 };

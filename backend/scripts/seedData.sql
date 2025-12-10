@@ -17,6 +17,7 @@ TRUNCATE TABLE courses;
 TRUNCATE TABLE categories;
 TRUNCATE TABLE instructors;
 TRUNCATE TABLE users;
+TRUNCATE TABLE cart;
 SET FOREIGN_KEY_CHECKS = 1;
 
 -- Users

@@ -4,6 +4,8 @@ import Home from "./components/Home";
 import Dashboard from "./components/Dashboard";
 import Forum from "./components/Forum";
 import MyCoursesPage from "./pages/mycourses/MyCoursesPage";
+import CourseDetail from "./components/CourseDetail";
+import CartPage from "./components/CartPage";
 
 function PrivateRoute({ children }) {
   const { user } = useAuth();
@@ -16,7 +18,8 @@ function App() {
       <Routes>
         {/* Trang login / home */}
         <Route path="/" element={<Home />} />
-
+          {/* Chi tiết khóa học */}
+      <Route path="/course/:id" element={<CourseDetail />} />
         {/* Dashboard */}
         <Route
           path="/dashboard"
@@ -39,6 +42,7 @@ function App() {
 
         {/* Forum */}
         <Route path="/forum" element={<Forum />} />
+        <Route path="/cart" element={<PrivateRoute><CartPage /></PrivateRoute>} />
       </Routes>
     </Router>
   );

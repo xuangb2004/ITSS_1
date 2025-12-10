@@ -23,6 +23,9 @@ app.use("/api/courses", require("./routes/courseRoutes"));
 app.use("/api/categories", require("./routes/categoryRoutes"));
 
 app.use("/api/search", require("./routes/searchRoutes"));
+
+app.use("/api/cart", require("./routes/cartRoutes"));
+app.use("/api/enrollments", require("./routes/enrollmentRoutes"));
 const PORT = process.env.PORT || 5001;
 app.listen(PORT, () => {
   console.log(`🚀 Server running on port ${PORT}`);

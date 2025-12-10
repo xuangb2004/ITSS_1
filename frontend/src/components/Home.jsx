@@ -180,7 +180,7 @@ function Home() {
             {user ? (
               <>
                 <div className="nav-icon-wrapper">
-                  <button className="nav-icon">
+                  <button className="nav-icon" onClick={() => navigate('/cart')}>
                     <i className="fa-solid fa-cart-shopping"></i>
                   </button>
                 </div>
