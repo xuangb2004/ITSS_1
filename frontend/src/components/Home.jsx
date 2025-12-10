@@ -266,7 +266,7 @@ function Home() {
             <div className="courses-grid">
               {filteredRecommended.length > 0 ? (
                 filteredRecommended.map((course) => (
-                  <CourseCard key={course._id} course={course} />
+                  <CourseCard key={course.course_id || course._id} course={course} />
                 ))
               ) : (
                 <p className="no-courses">おすすめのコースがありません</p>
@@ -286,7 +286,7 @@ function Home() {
             <div className="courses-grid">
               {filteredTrending.length > 0 ? (
                 filteredTrending.map((course) => (
-                  <CourseCard key={course._id} course={course} />
+                  <CourseCard key={course.course_id || course._id} course={course} />
                 ))
               ) : (
                 <p className="no-courses">トレンドのコースがありません</p>

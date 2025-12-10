@@ -2,7 +2,7 @@ const express = require("express");
 const router = express.Router();
 const pool = require("../config/db");
 
-// GET /search?q=xxx&sort=popular|newest
+// GET /api/search?q=xxx&sort=popular|newest
 router.get("/", async (req, res) => {
     try {
         const q = req.query.q || "";
@@ -14,6 +14,7 @@ router.get("/", async (req, res) => {
 
         const searchTerm = `%${q}%`;
 
+        // Sửa lỗi: Dùng ANY_VALUE() trong cả SELECT và ORDER BY
         const query = `
             SELECT 
                 c.course_id,
@@ -22,9 +23,9 @@ router.get("/", async (req, res) => {
                 c.thumbnail,
                 c.price,
                 c.created_at,
-                u.name AS instructor_name,
-                cat.name AS category_name,
-                COALESCE(cp.enroll_count, 0) AS enroll_count,
+                ANY_VALUE(u.name) AS instructor_name,
+                ANY_VALUE(cat.name) AS category_name,
+                COALESCE(ANY_VALUE(cp.enroll_count), 0) AS enroll_count,
                 GROUP_CONCAT(t.name SEPARATOR ',') AS tags
             FROM courses c
             LEFT JOIN instructors i ON c.instructor_id = i.instructor_id
@@ -40,23 +41,23 @@ router.get("/", async (req, res) => {
                 OR t.name LIKE ?
             GROUP BY c.course_id
             ORDER BY 
-                CASE WHEN ? = '人気のある' THEN cp.enroll_count END DESC,
+                CASE WHEN ? = '人気のある' THEN COALESCE(ANY_VALUE(cp.enroll_count), 0) END DESC,
                 CASE WHEN ? = '最新' THEN c.created_at END DESC
             LIMIT 20;
         `;
 
-        const result = await pool.query(query, [q, searchTerm, searchTerm, searchTerm, sort, sort]);
+        const [results] = await pool.query(query, [q, searchTerm, searchTerm, searchTerm, sort, sort]);
 
-        // Format tags từ comma-separated string thành array
-        const results = result[0].map(row => ({
+        // Format tags từ chuỗi thành mảng
+        const formattedResults = results.map(row => ({
             ...row,
             tags: row.tags ? row.tags.split(',') : []
         }));
 
-        res.json({ results });
+        res.json({ results: formattedResults });
 
     } catch (err) {
-        console.error(err);
+        console.error("Search Error:", err);
         res.status(500).json({ error: "Lỗi server. Vui lòng thử lại." });
     }
 });
