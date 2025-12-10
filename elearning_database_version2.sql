@@ -203,3 +203,23 @@ CREATE VIEW course_popularity AS
 SELECT course_id, COUNT(*) AS enroll_count
 FROM enrollments
 GROUP BY course_id;
+
+
+insert into elearning_platform.users (user_id,name,email,password_hash,role, avatar_url, created_at )
+values (1,'sherlock','sherlock@gmail.com','asdgasgasa','student','asgaggsd','2020-01-01 10:10:10 '),
+(2,'tom','tom@gmail.com','asdgasgasa','student','asgaggsdasdgag','2020-01-01 10:10:10 '),
+(3,'trump','trump@gmail.com','asdgasgasaasdaseg','student','asgaggsdasdgagasdg','2020-01-01 10:10:10 ');
+insert into elearning_platform.instructors (instructor_id, user_id, bio, expertise) values 
+(1,2,'tien sy','math');
+
+insert into elearning_platform.categories (category_id,name) values(1,'science');
+
+
+insert into elearning_platform.courses (course_id, instructor_id, title, description, level, price, 
+    thumbnail, 
+    category_id,
+    created_at
+) values (1,1,'math','good','beginner',10.2,'sadgsad',1,'2020-01-01 10:10:10 ');
+
+
+insert into elearning_platform.cart (user_id,course_id) values (2,1)
