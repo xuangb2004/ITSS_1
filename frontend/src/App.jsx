@@ -6,6 +6,7 @@ import Forum from "./components/Forum";
 import MyCoursesPage from "./pages/mycourses/MyCoursesPage";
 import CourseDetail from "./components/CourseDetail";
 import CartPage from "./components/CartPage";
+import CreateCourse from "./components/CreateCourse";
 
 function PrivateRoute({ children }) {
   const { user } = useAuth();
@@ -43,6 +44,14 @@ function App() {
         {/* Forum */}
         <Route path="/forum" element={<Forum />} />
         <Route path="/cart" element={<PrivateRoute><CartPage /></PrivateRoute>} />
+        <Route 
+          path="/create-course" 
+          element={
+            <PrivateRoute>
+              <CreateCourse />
+            </PrivateRoute>
+          } 
+        />
       </Routes>
     </Router>
   );

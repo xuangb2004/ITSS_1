@@ -2,6 +2,7 @@ const db = require("../config/db");
 const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
 
+// Đăng ký Học viên
 exports.signup = async (req, res) => {
   try {
     const { name, email, password, confirmPassword } = req.body;
@@ -13,7 +14,6 @@ exports.signup = async (req, res) => {
       return res.status(400).json({ message: "Mật khẩu xác nhận không khớp" });
     }
 
-    // MySQL dùng ? thay vì $1
     const [existingUsers] = await db.query("SELECT * FROM users WHERE email = ?", [email]);
     if (existingUsers.length > 0) {
       return res.status(400).json({ message: "Email này đã được đăng ký" });
@@ -21,7 +21,6 @@ exports.signup = async (req, res) => {
 
     const hashedPassword = await bcrypt.hash(password, 10);
 
-    // MySQL Insert
     await db.query(
       "INSERT INTO users (name, email, password_hash, role) VALUES (?, ?, ?, 'student')",
       [name, email, hashedPassword]
@@ -34,6 +33,7 @@ exports.signup = async (req, res) => {
   }
 };
 
+// Đăng nhập (Chung cho cả 2)
 exports.signin = async (req, res) => {
   try {
     const { email, password } = req.body;
@@ -42,7 +42,6 @@ exports.signin = async (req, res) => {
       return res.status(400).json({ message: "Vui lòng nhập email và mật khẩu" });
     }
 
-    // MySQL Select
     const [users] = await db.query("SELECT * FROM users WHERE email = ?", [email]);
     if (users.length === 0) {
       return res.status(400).json({ message: "Email không tồn tại" });
@@ -50,6 +49,9 @@ exports.signin = async (req, res) => {
 
     const user = users[0];
 
+    // Lưu ý: Sửa lại tên cột password cho khớp database của bạn (password_hash hoặc password)
+    // Trong file seedData.sql bạn dùng 'password_hash', nhưng code cũ có lúc dùng 'password'
+    // Ở đây tôi dùng 'password_hash' theo hàm signup bên trên
     const isMatch = await bcrypt.compare(password, user.password_hash);
     if (!isMatch) {
       return res.status(400).json({ message: "Mật khẩu không đúng" });
@@ -57,7 +59,7 @@ exports.signin = async (req, res) => {
 
     const token = jwt.sign(
       { userId: user.user_id, role: user.role },
-      process.env.JWT_SECRET, 
+      process.env.JWT_SECRET || "secret", 
       { expiresIn: "1d" }
     );
 
@@ -76,6 +78,8 @@ exports.signin = async (req, res) => {
     return res.status(500).json({ message: "Lỗi Server" });
   }
 };
+
+// 👇 HÀM MỚI: Đăng ký Giảng viên 👇
 exports.instructorSignup = async (req, res) => {
   const { name, email, password, bio, expertise } = req.body;
 
@@ -83,52 +87,55 @@ exports.instructorSignup = async (req, res) => {
     return res.status(400).json({ message: "Vui lòng điền đầy đủ thông tin" });
   }
 
-  const connection = await db.getConnection(); // Lấy connection để dùng transaction
+  const connection = await db.getConnection(); // Dùng transaction
 
   try {
-    await connection.beginTransaction(); // Bắt đầu giao dịch
+    await connection.beginTransaction();
 
-    // 1. Kiểm tra email tồn tại
+    // 1. Kiểm tra email
     const [existing] = await connection.query("SELECT * FROM users WHERE email = ?", [email]);
     if (existing.length > 0) {
       await connection.release();
       return res.status(400).json({ message: "Email này đã được sử dụng" });
     }
 
-    // 2. Hash mật khẩu
+    // 2. Hash password
     const hashedPassword = await bcrypt.hash(password, 10);
 
-    // 3. Tạo User với role = 'instructor'
+    // 3. Tạo User (role='instructor')
+    // Lưu ý: DB của bạn dùng cột 'password_hash'
     const [userResult] = await connection.query(
-      "INSERT INTO users (name, email, password, role) VALUES (?, ?, ?, 'instructor')",
+      "INSERT INTO users (name, email, password_hash, role) VALUES (?, ?, ?, 'instructor')",
       [name, email, hashedPassword]
     );
     const newUserId = userResult.insertId;
 
-    // 4. Tạo Instructor Profile (Bio & Expertise)
+    // 4. Tạo Instructor Profile
     await connection.query(
       "INSERT INTO instructors (user_id, bio, expertise) VALUES (?, ?, ?)",
       [newUserId, bio, expertise]
     );
 
-    await connection.commit(); // Xác nhận giao dịch thành công
+    await connection.commit();
 
-    // 5. Tạo Token để tự động đăng nhập luôn
-    const token = jwt.sign({ userId: newUserId, role: 'instructor' }, process.env.JWT_SECRET || 'secret', {
-      expiresIn: "24h",
-    });
+    // 5. Tạo Token đăng nhập luôn
+    const token = jwt.sign(
+      { userId: newUserId, role: 'instructor' }, 
+      process.env.JWT_SECRET || "secret", 
+      { expiresIn: "1d" }
+    );
 
     res.status(201).json({ 
       message: "Đăng ký giảng viên thành công", 
       token,
-      user: { id: newUserId, name, email, role: 'instructor', avatar: null }
+      user: { id: newUserId, name, email, role: 'instructor' }
     });
 
   } catch (err) {
-    await connection.rollback(); // Nếu lỗi thì hoàn tác
+    await connection.rollback();
     console.error(err);
     res.status(500).json({ message: "Lỗi server" });
   } finally {
-    connection.release(); // Trả kết nối về pool
+    connection.release();
   }
 };

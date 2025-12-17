@@ -99,6 +99,13 @@ export const courseService = {
   getCourseById: async (id) => {
     const response = await api.get(`/courses/${id}`);
     return response.data;
+  },
+  createCourse: async (formData) => {
+    // Gửi FormData (bao gồm file và text)
+    const response = await api.post('/courses', formData, {
+      headers: { "Content-Type": "multipart/form-data" },
+    });
+    return response.data;
   }
 };
 

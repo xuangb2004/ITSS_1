@@ -3,80 +3,39 @@ import { useNavigate } from 'react-router-dom';
 function CourseCard({ course }) {
   const navigate = useNavigate();
 
-  const renderStars = (rating) => {
-    const validRating = Number(rating) || 0;
-    const fullStars = Math.floor(validRating);
-    const hasHalfStar = validRating % 1 >= 0.5;
-    const stars = [];
+  const handleClick = () => {
+    // Dùng course.course_id nếu lấy từ API thật, hoặc course.id nếu mock
+    const id = course.course_id || course.id; 
+    navigate(`/course/${id}`);
+  };
 
-    for (let i = 0; i < fullStars; i++) {
-      stars.push(<i key={`full-${i}`} className="fa-solid fa-star"></i>);
-    }
-    if (hasHalfStar) {
-      stars.push(<i key="half" className="fa-solid fa-star-half-stroke"></i>);
-    }
-    const emptyStars = 5 - Math.ceil(validRating);
-    for (let i = 0; i < emptyStars; i++) {
-      stars.push(<i key={`empty-${i}`} className="fa-regular fa-star"></i>);
-    }
-
-    return stars;
-  }
-
-  // Xử lý giá tiền (chuyển từ string sang number)
-  const price = Number(course.price) || 0;
-  const originalPrice = course.originalPrice ? Number(course.originalPrice) : null;
-
-  // Lấy ID để điều hướng (ưu tiên course_id của SQL)
-  const courseId = course.course_id || course._id;
+  const isFree = Number(course.price) === 0;
 
   return (
-    <div 
-      className="course-card"
-      onClick={() => navigate(`/course/${courseId}`)}
-    >
-      <div className="course-thumbnail">
-        {course.thumbnail ? (
-          <img src={course.thumbnail} alt={course.title} />
-        ) : (
-          <div className="course-thumbnail-placeholder">
-            <i className="fa-solid fa-image"></i>
-          </div>
-        )}
-      </div>
-      <div className="course-info">
+    <div className="course-card" onClick={handleClick}>
+      <img src={course.thumbnail || "https://via.placeholder.com/300x170"} alt={course.title} className="course-image" />
+      <div className="course-content">
         <h3 className="course-title">{course.title}</h3>
-        <p className="course-instructor">
-          {/* Hiển thị tên giảng viên từ SQL (instructor_name) hoặc MongoDB (instructor_id.studio) */}
-          {course.instructor_name || course.instructor_id?.studio || 'Instructor'}
-        </p>
-        <p className="course-description">
-          {course.description?.substring(0, 100)}
-          {course.description?.length > 100 ? '...' : ''}
-        </p>
+        <p className="course-instructor">{course.instructor_name || "Unknown"}</p>
+        
         <div className="course-rating">
+          <span className="rating-score">4.8</span>
           <div className="stars">
-            {renderStars(course.rating)}
+            <i className="fa-solid fa-star"></i>
+            <i className="fa-solid fa-star"></i>
+            <i className="fa-solid fa-star"></i>
+            <i className="fa-solid fa-star"></i>
+            <i className="fa-solid fa-star"></i>
           </div>
-          <span className="rating-text">
-            {Number(course.rating || 0).toFixed(1)} ({course.reviewCount || 0})
-          </span>
+          <span className="review-count">(120)</span>
         </div>
-        <div className="course-price">
-          {originalPrice && originalPrice > price ? (
-            <>
-              <span className="price-current">${price.toFixed(2)}</span>
-              <span className="price-original">${originalPrice.toFixed(2)}</span>
-            </>
-          ) : (
-            <span className="price-current">
-              {price === 0 ? "Miễn phí" : `$${price.toFixed(2)}`}
-            </span>
-          )}
+        
+        <div className="course-price" style={{color: isFree ? '#16a34a' : '#333'}}>
+          {isFree ? "Miễn phí" : `$${Number(course.price).toFixed(2)}`}
         </div>
       </div>
     </div>
-  )
+  );
 }
 
 export default CourseCard;

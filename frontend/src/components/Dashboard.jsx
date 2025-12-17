@@ -102,6 +102,19 @@ function Dashboard() {
           <button className="nav-item" onClick={() => navigate('/cart')}>
             <i className="fa-solid fa-cart-shopping"></i> カート
           </button>
+
+           {/* Chỉ hiển thị nút Đăng khóa học nếu role là instructor */}
+           {profile?.role === 'instructor' && (
+            <button 
+              className="nav-item" 
+              style={{ backgroundColor: '#e6fffa', color: '#0d9488', fontWeight: 'bold' }}
+              onClick={() => navigate('/create-course')}
+            >
+              <i className="fa-solid fa-plus-circle" style={{ marginRight: '5px' }}></i> 
+              新規コース作成
+            </button>
+          )}
+
           <button className="nav-item logout" onClick={handleSignOut}>
             <i className="fa-solid fa-arrow-right-from-bracket"></i> ログアウト
           </button>
