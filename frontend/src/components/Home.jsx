@@ -7,13 +7,17 @@ import SignUpModal from './SignUpModal'
 import SignInModal from './SignInModal'
 import CourseCard from './CourseCard'
 import SearchBar from './SearchBar'
-
-
+import InstructorSignUpModal from './InstructorSignUpModal' // <--- Import Modal Giảng viên
 
 function Home() {
   const navigate = useNavigate()
+  
+  // States cho Modals
   const [showSignUp, setShowSignUp] = useState(false)
   const [showSignIn, setShowSignIn] = useState(false)
+  const [showInstructorSignUp, setShowInstructorSignUp] = useState(false) // <--- State mới cho modal giảng viên
+
+  // States dữ liệu
   const [searchQuery, setSearchQuery] = useState('')
   const [selectedCategory, setSelectedCategory] = useState('すべてのおすすめ')
   const [recommendedCourses, setRecommendedCourses] = useState([])
@@ -22,14 +26,30 @@ function Home() {
   const [filteredTrending, setFilteredTrending] = useState([])
   const [categories, setCategories] = useState([])
   const [loading, setLoading] = useState(true)
+  
   const { user, signout } = useAuth()
   
-
   const handleSignOut = () => {
     signout()
     navigate('/')
     window.location.reload()
   }
+
+  // Hàm xử lý khi bấm nút "Trở thành giảng viên"
+  const handleBecomeInstructorClick = (e) => {
+    e.preventDefault();
+    if (user) {
+      if (user.role === 'instructor') {
+        alert("Bạn đã là giảng viên rồi!");
+        navigate('/dashboard');
+      } else {
+        alert("Bạn đang đăng nhập với tài khoản học viên. Hãy đăng ký tài khoản giảng viên mới hoặc liên hệ admin.");
+      }
+    } else {
+      // Chưa đăng nhập -> Mở modal đăng ký giảng viên
+      setShowInstructorSignUp(true);
+    }
+  };
 
   useEffect(() => {
     loadData()
@@ -43,7 +63,6 @@ function Home() {
   const loadData = async () => {
     try {
       setLoading(true)
-      // --- SỬA Ở ĐÂY: Dùng courseService/categoryService thay vì mock ---
       const [recommended, trending, categoriesData] = await Promise.all([
         courseService.getRecommendedCourses(100), 
         courseService.getTrendingCourses(100), 
@@ -105,20 +124,6 @@ function Home() {
     }
   }
 
-  const handleSearch = async (e) => {
-    e.preventDefault()
-    if (!searchQuery.trim()) return
-    
-    try {
-      // --- SỬA Ở ĐÂY: Dùng courseService ---
-      const results = await courseService.searchCourses(searchQuery)
-      console.log('Search results:', results)
-      alert(`Found ${results.total} courses`)
-    } catch (error) {
-      console.error('Search error:', error)
-    }
-  }
-
   const categoryFilters = [
     'すべてのおすすめ',
     'Adobe Illustrator',
@@ -169,7 +174,11 @@ function Home() {
           <SearchBar />
 
           <div className="nav-actions">
-            <button className="nav-btn">インストラクターになる</button>
+            {/* NÚT ĐĂNG KÝ GIẢNG VIÊN ĐÃ ĐƯỢC GẮN SỰ KIỆN */}
+            <button className="nav-btn" onClick={handleBecomeInstructorClick}>
+              インストラクターになる
+            </button>
+            
             <button 
               className="nav-icon" 
               onClick={() => navigate('/forum')}
@@ -296,8 +305,11 @@ function Home() {
         </section>
       </main>
 
+      {/* --- CÁC MODALS --- */}
+      
       {showSignUp && (
         <SignUpModal 
+          isOpen={showSignUp} // Đảm bảo truyền đúng prop isOpen
           onClose={() => setShowSignUp(false)}
           onSwitchToSignIn={() => {
             setShowSignUp(false)
@@ -308,10 +320,23 @@ function Home() {
 
       {showSignIn && (
         <SignInModal 
+          isOpen={showSignIn} // Đảm bảo truyền đúng prop isOpen
           onClose={() => setShowSignIn(false)}
           onSwitchToSignUp={() => {
             setShowSignIn(false)
             setShowSignUp(true)
+          }}
+        />
+      )}
+
+      {/* MODAL ĐĂNG KÝ GIẢNG VIÊN */}
+      {showInstructorSignUp && (
+        <InstructorSignUpModal
+          isOpen={showInstructorSignUp}
+          onClose={() => setShowInstructorSignUp(false)}
+          onSwitchToSignIn={() => {
+            setShowInstructorSignUp(false)
+            setShowSignIn(true)
           }}
         />
       )}

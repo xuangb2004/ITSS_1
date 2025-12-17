@@ -27,6 +27,10 @@ export const authService = {
     const response = await api.post('/auth/signup', data);
     return response.data;
   },
+  instructorSignup: async (data) => {
+    const response = await api.post('/auth/instructor/signup', data);
+    return response.data;
+  },
   signin: async (data) => {
     const response = await api.post('/auth/signin', data);
     return response.data;
@@ -144,4 +148,5 @@ export const userService = {
     return response.data;
   }
 };
+
 export default api;

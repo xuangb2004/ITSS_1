@@ -12,7 +12,7 @@ function Dashboard() {
   const [isEditing, setIsEditing] = useState(false);
   const [loading, setLoading] = useState(true);
 
-  // State cho form
+  // フォーム用のState
   const [formData, setFormData] = useState({
     name: '',
     bio: '',
@@ -32,10 +32,12 @@ function Dashboard() {
         name: data.name,
         bio: data.bio || '',
         avatarFile: null,
-        previewUrl: data.avatar ? `http://localhost:5001${data.avatar}` : "https://via.placeholder.com/150"
+        previewUrl: data.avatar
+          ? `http://localhost:5001${data.avatar}`
+          : "https://via.placeholder.com/150"
       });
     } catch (error) {
-      console.error("Lỗi tải profile:", error);
+      console.error("プロフィールの読み込みエラー:", error);
     } finally {
       setLoading(false);
     }
@@ -70,136 +72,163 @@ function Dashboard() {
       const res = await userService.updateProfile(data);
       setProfile(res.user);
       setIsEditing(false);
-      alert("Cập nhật thành công!");
+      alert("更新が完了しました！");
     } catch (error) {
-      alert("Lỗi cập nhật profile");
+      alert("プロフィール更新エラー");
     }
   };
 
-  if (loading) return <div style={{padding: '50px', textAlign: 'center'}}>Đang tải dữ liệu...</div>;
+  if (loading)
+    return (
+      <div style={{ padding: '50px', textAlign: 'center' }}>
+        データを読み込み中...
+      </div>
+    );
 
   return (
     <div className="dashboard-container">
-      {/* SIDEBAR */}
+      {/* サイドバー */}
       <aside className="dashboard-sidebar">
         <div className="sidebar-header">
-          <h2>Tài khoản</h2>
+          <h2>アカウント</h2>
         </div>
         <nav className="sidebar-nav">
           <button className="nav-item active">
-            <i className="fa-regular fa-user"></i> Hồ sơ cá nhân
+            <i className="fa-regular fa-user"></i> プロフィール
           </button>
           <button className="nav-item" onClick={() => navigate('/my-courses')}>
-            <i className="fa-solid fa-book-open"></i> Khóa học của tôi
+            <i className="fa-solid fa-book-open"></i> マイコース
           </button>
           <button className="nav-item" onClick={() => navigate('/cart')}>
-            <i className="fa-solid fa-cart-shopping"></i> Giỏ hàng
+            <i className="fa-solid fa-cart-shopping"></i> カート
           </button>
           <button className="nav-item logout" onClick={handleSignOut}>
-            <i className="fa-solid fa-arrow-right-from-bracket"></i> Đăng xuất
+            <i className="fa-solid fa-arrow-right-from-bracket"></i> ログアウト
           </button>
         </nav>
       </aside>
 
-      {/* MAIN CONTENT */}
+      {/* メインコンテンツ */}
       <main className="dashboard-main">
         <div className="profile-header">
-          <h1>Hồ sơ của tôi</h1>
+          <h1>マイプロフィール</h1>
           {!isEditing && (
             <button className="btn-edit" onClick={() => setIsEditing(true)}>
-              <i className="fa-solid fa-pen"></i> Chỉnh sửa
+              <i className="fa-solid fa-pen"></i> 編集
             </button>
           )}
         </div>
 
         <div className="profile-card">
-          {/* Cột trái: Avatar */}
+          {/* 左カラム：アバター */}
           <div className="profile-avatar-section">
-            <img 
-              src={formData.previewUrl || "https://via.placeholder.com/150"} 
-              alt="Avatar" 
+            <img
+              src={formData.previewUrl || "https://via.placeholder.com/150"}
+              alt="Avatar"
               className="profile-avatar-large"
             />
             {isEditing && (
               <div className="file-upload-wrapper">
                 <label htmlFor="avatar-upload" className="btn-upload">
-                  <i className="fa-solid fa-camera"></i> Đổi ảnh
+                  <i className="fa-solid fa-camera"></i> 写真を変更
                 </label>
-                <input 
-                  id="avatar-upload" 
-                  type="file" 
-                  accept="image/*" 
-                  onChange={handleFileChange} 
-                  style={{display: 'none'}}
+                <input
+                  id="avatar-upload"
+                  type="file"
+                  accept="image/*"
+                  onChange={handleFileChange}
+                  style={{ display: 'none' }}
                 />
               </div>
             )}
           </div>
 
-          {/* Cột phải: Thông tin */}
+          {/* 右カラム：情報 */}
           <div className="profile-info-section">
             {isEditing ? (
-              // FORM CHỈNH SỬA
+              // 編集フォーム
               <form onSubmit={handleSubmit} className="edit-form">
                 <div className="form-group">
-                  <label>Họ và tên</label>
-                  <input 
-                    type="text" 
-                    value={formData.name} 
-                    onChange={(e) => setFormData({...formData, name: e.target.value})}
+                  <label>氏名</label>
+                  <input
+                    type="text"
+                    value={formData.name}
+                    onChange={(e) =>
+                      setFormData({ ...formData, name: e.target.value })
+                    }
                     required
                   />
                 </div>
 
                 <div className="form-group">
-                  <label>Giới thiệu bản thân (Bio)</label>
-                  <textarea 
-                    value={formData.bio} 
-                    onChange={(e) => setFormData({...formData, bio: e.target.value})}
+                  <label>自己紹介（Bio）</label>
+                  <textarea
+                    value={formData.bio}
+                    onChange={(e) =>
+                      setFormData({ ...formData, bio: e.target.value })
+                    }
                     rows="5"
-                    placeholder="Hãy viết vài dòng về bạn..."
+                    placeholder="あなたについて数行で紹介してください..."
                   />
                 </div>
 
                 <div className="form-actions">
-                  <button type="button" className="btn-cancel" onClick={() => {
-                    setIsEditing(false);
-                    // Reset lại form về dữ liệu gốc
-                    setFormData({
-                      ...formData,
-                      name: profile.name,
-                      bio: profile.bio || '',
-                      avatarFile: null,
-                      previewUrl: profile.avatar ? `http://localhost:5001${profile.avatar}` : "https://via.placeholder.com/150"
-                    });
-                  }}>Hủy bỏ</button>
-                  <button type="submit" className="btn-save">Lưu thay đổi</button>
+                  <button
+                    type="button"
+                    className="btn-cancel"
+                    onClick={() => {
+                      setIsEditing(false);
+                      // フォームを元のデータにリセット
+                      setFormData({
+                        ...formData,
+                        name: profile.name,
+                        bio: profile.bio || '',
+                        avatarFile: null,
+                        previewUrl: profile.avatar
+                          ? `http://localhost:5001${profile.avatar}`
+                          : "https://via.placeholder.com/150"
+                      });
+                    }}
+                  >
+                    キャンセル
+                  </button>
+                  <button type="submit" className="btn-save">
+                    変更を保存
+                  </button>
                 </div>
               </form>
             ) : (
-              // HIỂN THỊ THÔNG TIN
+              // 情報表示
               <div className="info-display">
                 <div className="info-item">
-                  <label>Họ và tên</label>
+                  <label>氏名</label>
                   <p>{profile?.name}</p>
                 </div>
-                
+
                 <div className="info-item">
-                  <label>Email đăng nhập</label>
+                  <label>ログインメール</label>
                   <p>{profile?.email}</p>
                 </div>
 
                 <div className="info-item">
-                  <label>Vai trò hệ thống</label>
+                  <label>システム権限</label>
                   <span className={`role-badge ${profile?.role}`}>
-                    {profile?.role === 'instructor' ? 'Giảng viên' : 'Học viên'}
+                    {profile?.role === 'instructor'
+                      ? '講師'
+                      : '受講生'}
                   </span>
                 </div>
 
                 <div className="info-item">
-                  <label>Giới thiệu</label>
+                  <label>自己紹介</label>
                   <p className="bio-text">
-                    {profile?.bio ? profile.bio : <em style={{color: '#9ca3af'}}>Chưa cập nhật giới thiệu...</em>}
+                    {profile?.bio ? (
+                      profile.bio
+                    ) : (
+                      <em style={{ color: '#9ca3af' }}>
+                        まだ自己紹介が設定されていません...
+                      </em>
+                    )}
                   </p>
                 </div>
               </div>
