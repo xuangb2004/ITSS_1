@@ -1,18 +1,42 @@
 const db = require("../config/db");
 
-// 1. Lấy danh sách chủ đề (Topics) 
+// 0. (MỚI) Lấy danh sách danh mục/môn học
+exports.getCategories = async (req, res) => {
+  try {
+    // Giả sử bảng tên là 'categories' hoặc 'subjects'. 
+    // Nếu bảng bạn tên khác, hãy sửa lại (ví dụ: SELECT * FROM subjects)
+    const [categories] = await db.query("SELECT * FROM categories ORDER BY category_id ASC");
+    res.json(categories);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: "Lỗi server khi lấy danh mục" });
+  }
+};
+
+// 1. Lấy danh sách chủ đề (Topics) - Đã sửa để hỗ trợ Lọc
 exports.getTopics = async (req, res) => {
   try {
-    // Sửa câu truy vấn: Chỉ lấy các topic có course_id LÀ NULL
-    const sql = `
+    const { category_id } = req.query; // Lấy tham số lọc từ URL (ví dụ: ?category_id=2)
+
+    let sql = `
       SELECT t.*, u.name as author_name, 
       (SELECT COUNT(*) FROM forum_posts p WHERE p.topic_id = t.topic_id) as reply_count
       FROM forum_topics t
       JOIN users u ON t.user_id = u.user_id
-      WHERE t.course_id IS NULL
-      ORDER BY t.created_at DESC
     `;
-    const [topics] = await db.query(sql);
+
+    const params = [];
+
+    // LOGIC LỌC:
+    // Nếu có category_id và khác 'ALL' thì thêm điều kiện WHERE
+    if (category_id && category_id !== 'ALL') {
+      sql += ` WHERE t.category_id = ? `; // Đã đổi course_id -> category_id
+      params.push(category_id);
+    }
+
+    sql += ` ORDER BY t.created_at DESC`;
+
+    const [topics] = await db.query(sql, params);
     res.json(topics);
   } catch (err) {
     console.error(err);
@@ -20,10 +44,11 @@ exports.getTopics = async (req, res) => {
   }
 };
 
-// 2. Tạo chủ đề mới (Kèm file đính kèm)
+// 2. Tạo chủ đề mới (Kèm file đính kèm) - Đã sửa để lưu category_id
 exports.createTopic = async (req, res) => {
   try {
-    const { title, content } = req.body;
+    // Nhận thêm category_id từ body
+    const { title, content, category_id } = req.body;
     const userId = req.user.userId;
     
     // Lấy đường dẫn file nếu có
@@ -34,9 +59,10 @@ exports.createTopic = async (req, res) => {
 
     try {
       // Insert Topic
+      // QUAN TRỌNG: Lưu category_id nhận được vào DB (thay vì NULL)
       const [topicRes] = await conn.query(
-        "INSERT INTO forum_topics (course_id, user_id, title) VALUES (NULL, ?, ?)",
-        [userId, title]
+        "INSERT INTO forum_topics (category_id, user_id, title) VALUES (?, ?, ?)",
+        [category_id || null, userId, title] // Nếu không chọn thì để null
       );
       const topicId = topicRes.insertId;
 
@@ -75,7 +101,7 @@ exports.getTopicDetails = async (req, res) => {
 
     // Lấy danh sách bài viết (Posts/Replies) kèm trạng thái Like
     const sqlPosts = `
-      SELECT p.*, u.name as author_name,
+      SELECT p.*, u.name as author_name, u.avatar_url,
       (SELECT COUNT(*) FROM forum_post_likes l WHERE l.post_id = p.post_id) as like_count,
       (SELECT COUNT(*) FROM forum_post_likes l WHERE l.post_id = p.post_id AND l.user_id = ?) as is_liked
       FROM forum_posts p
@@ -163,6 +189,7 @@ exports.toggleLike = async (req, res) => {
     res.status(500).json({ message: "Lỗi server" });
   }
 };
+
 // 6. Xóa chủ đề (Chỉ người tạo mới được xóa)
 exports.deleteTopic = async (req, res) => {
   try {
@@ -175,7 +202,7 @@ exports.deleteTopic = async (req, res) => {
     if (topics.length === 0) return res.status(404).json({ message: "Chủ đề không tồn tại" });
     if (topics[0].user_id !== userId) return res.status(403).json({ message: "Bạn không có quyền xóa bài này" });
 
-    // Xóa topic (Các post con sẽ tự động bị xóa nhờ ON DELETE CASCADE trong SQL)
+    // Xóa topic
     await db.query("DELETE FROM forum_topics WHERE topic_id = ?", [topicId]);
 
     res.json({ message: "Đã xóa chủ đề" });
@@ -203,5 +230,42 @@ exports.deletePost = async (req, res) => {
   } catch (err) {
     console.error(err);
     res.status(500).json({ message: "Lỗi server" });
+  }
+};
+
+// 8. Tìm kiếm
+exports.searchForum = async (req, res) => {
+  try {
+    const { q } = req.query; // Từ khóa tìm kiếm
+    if (!q || q.trim() === '') {
+      return res.json([]);
+    }
+
+    const searchTerm = q.trim();
+
+    const sql = `
+      SELECT 
+        p.post_id, 
+        p.content, 
+        p.created_at, 
+        p.topic_id,
+        u.name as user_name, 
+        u.avatar_url,
+        t.title as topic_title
+      FROM forum_posts p
+      JOIN users u ON p.user_id = u.user_id
+      JOIN forum_topics t ON p.topic_id = t.topic_id
+      WHERE p.content LIKE ? OR t.title LIKE ?
+      ORDER BY p.created_at DESC
+      LIMIT 50
+    `;
+
+    const searchPattern = `%${searchTerm}%`;
+    const [results] = await db.query(sql, [searchPattern, searchPattern]);
+
+    res.json(results);
+  } catch (err) {
+    console.error("Search Forum Error:", err);
+    res.status(500).json({ message: "Lỗi tìm kiếm" });
   }
 };

@@ -46,10 +46,26 @@ export const forumService = {
     const response = await api.get(`/forum/topic/${topicId}`);
     return response.data;
   },
+  getCategories: async () => {
+    try {
+      // Gọi API lấy danh sách môn học
+      const response = await axios.get(`${API_URL}/categories`); // Hoặc /subjects tùy DB của bạn
+      
+      // Quan trọng: Phải RETURN dữ liệu ra ngoài
+      return response.data; 
+    } catch (error) {
+      console.error("Lỗi lấy categories:", error);
+      return []; // Trả về mảng rỗng nếu lỗi để không bị crash trang web
+    }
+  },
   createTopic: async (formData) => {
     const response = await api.post('/forum/topic', formData, {
       headers: { "Content-Type": "multipart/form-data" },
     });
+    return response.data;
+  },
+  searchForum: async (query) => {
+    const response = await api.get(`/forum/search?q=${query}`);
     return response.data;
   },
   reply: async (topicId, formData) => {

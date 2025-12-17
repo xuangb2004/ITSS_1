@@ -26,7 +26,8 @@ const verifyToken = (req, res, next) => {
 
 router.get("/topics", forumController.getTopics); 
 router.get("/topic/:topicId", verifyToken, forumController.getTopicDetails); 
-
+router.get("/search", forumController.searchForum);
+router.get('/categories', forumController.getCategories);
 // QUAN TRỌNG: Thêm 'upload.single("attachment")' vào route này
 router.post("/topic", verifyToken, upload.single("attachment"), forumController.createTopic); 
 

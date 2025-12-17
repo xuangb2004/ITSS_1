@@ -200,6 +200,12 @@ ALTER TABLE courses ADD FULLTEXT(title, description);
 ALTER TABLE users 
 ADD COLUMN avatar VARCHAR(255) DEFAULT NULL,
 ADD COLUMN bio TEXT DEFAULT NULL;
+-- Thêm chỉ mục tìm kiếm văn bản cho nội dung bài viết
+ALTER TABLE forum_posts ADD FULLTEXT(content);
+
+-- (Tùy chọn) Thêm cho tiêu đề topic nếu muốn tìm cả tiêu đề
+ALTER TABLE forum_topics ADD FULLTEXT(title);
+
 -- Popularity view
 CREATE VIEW course_popularity AS
 SELECT course_id, COUNT(*) AS enroll_count
