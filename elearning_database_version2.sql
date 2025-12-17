@@ -197,7 +197,9 @@ CREATE INDEX idx_notifications_user ON notifications(user_id);
 
 -- FULLTEXT Index (MySQL)
 ALTER TABLE courses ADD FULLTEXT(title, description);
-
+ALTER TABLE users 
+ADD COLUMN avatar VARCHAR(255) DEFAULT NULL,
+ADD COLUMN bio TEXT DEFAULT NULL;
 -- Popularity view
 CREATE VIEW course_popularity AS
 SELECT course_id, COUNT(*) AS enroll_count

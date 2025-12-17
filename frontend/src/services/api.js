@@ -131,5 +131,17 @@ export const enrollmentService = {
     return response.data;
   }
 };
-
+export const userService = {
+  getProfile: async () => {
+    const response = await api.get('/user/profile');
+    return response.data;
+  },
+  updateProfile: async (formData) => {
+    // Lưu ý: Vì có upload file nên content-type sẽ tự động được set bởi axios khi gửi FormData
+    const response = await api.put('/user/profile', formData, {
+      headers: { "Content-Type": "multipart/form-data" },
+    });
+    return response.data;
+  }
+};
 export default api;

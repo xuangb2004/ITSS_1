@@ -1,153 +1,322 @@
-/* Nền trắng, content ở giữa */
-.account-page {
-  background: #ffffff;
-  min-height: calc(100vh - 70px); /* trừ phần navbar nếu có */
+/* Layout tổng thể */
+.dashboard-container {
   display: flex;
-  justify-content: center;
-  padding: 40px 0 80px;
+  min-height: calc(100vh - 60px); /* Trừ đi chiều cao header nếu có */
+  background-color: #f3f4f6; /* Màu nền xám nhẹ */
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
 }
 
-.account-inner {
-  width: 100%;
-  max-width: 900px;
-  margin: 0 auto;
-  text-align: center;
-}
-
-/* Tiêu đề */
-.account-title {
-  font-size: 24px;
-  font-weight: 700;
-  margin-bottom: 16px;
-}
-
-/* Tabs ngang */
-.account-tabs {
+/* --- SIDEBAR --- */
+.dashboard-sidebar {
+  width: 260px;
+  background-color: #ffffff;
+  border-right: 1px solid #e5e7eb;
+  padding: 24px 0;
   display: flex;
-  justify-content: center;
-  gap: 32px;
-  font-size: 14px;
-  border-bottom: 1px solid #eeeeee;
-  padding-bottom: 10px;
-  margin-bottom: 30px;
+  flex-direction: column;
+  flex-shrink: 0;
 }
 
-.account-tab {
+.sidebar-header h2 {
+  padding: 0 24px 20px;
+  font-size: 18px;
+  color: #6b7280;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  border-bottom: 1px solid #f3f4f6;
+  margin-bottom: 10px;
+}
+
+.sidebar-nav {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.nav-item {
+  display: flex;
+  align-items: center;
+  padding: 12px 24px;
+  font-size: 15px;
+  color: #374151;
+  background: none;
   border: none;
-  background: transparent;
-  padding: 0 0 6px;
   cursor: pointer;
-  color: #666;
-  position: relative;
+  transition: all 0.2s;
+  text-align: left;
+  font-weight: 500;
 }
 
-.account-tab.active {
-  color: #111;
-  font-weight: 600;
+.nav-item i {
+  width: 24px;
+  margin-right: 10px;
+  color: #9ca3af;
 }
 
-.account-tab.active::after {
-  content: '';
-  position: absolute;
-  left: 0;
-  right: 0;
-  bottom: -1px;
-  height: 2px;
-  background: #14b8a6;      /* gạch dưới tab */
-  border-radius: 999px;
+.nav-item:hover {
+  background-color: #f9fafb;
+  color: #111827;
 }
 
-/* Avatar */
-.account-avatar-wrap {
-  margin-top: 24px;
+.nav-item:hover i {
+  color: #14b8a6; /* Màu xanh teal */
+}
+
+.nav-item.active {
+  background-color: #f0fdfa; /* Nền xanh nhạt */
+  color: #0f766e;
+  border-right: 3px solid #14b8a6;
+}
+
+.nav-item.active i {
+  color: #0d9488;
+}
+
+.nav-item.logout {
+  margin-top: auto;
+  color: #ef4444;
+}
+.nav-item.logout:hover {
+  background-color: #fef2f2;
+}
+.nav-item.logout i {
+  color: #f87171;
+}
+
+/* --- MAIN CONTENT --- */
+.dashboard-main {
+  flex: 1;
+  padding: 32px 40px;
+}
+
+.profile-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
   margin-bottom: 24px;
 }
 
-.account-avatar-circle {
-  width: 90px;
-  height: 90px;
-  margin: 0 auto 8px;
-  border-radius: 50%;
-  overflow: hidden;
-  border: 2px solid #ddd;
+.profile-header h1 {
+  font-size: 24px;
+  color: #111827;
+  font-weight: 700;
 }
 
-.account-avatar-circle img {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-}
-
-.account-avatar-change {
-  font-size: 13px;
-  color: #14b8a6;
+.btn-edit {
+  padding: 8px 16px;
+  background-color: white;
+  border: 1px solid #d1d5db;
+  border-radius: 6px;
+  color: #374151;
+  font-weight: 600;
   cursor: pointer;
-  text-decoration: underline;
-}
-
-/* Form dạng từng dòng + gạch ngang */
-.account-form {
-  max-width: 480px;
-  margin: 0 auto;
-  text-align: left;
-}
-
-.account-row {
+  transition: 0.2s;
   display: flex;
   align-items: center;
-  gap: 24px;
-  margin-bottom: 16px;
+  gap: 8px;
 }
 
-.account-label {
-  width: 70px;
-  font-size: 14px;
-  color: #555;
+.btn-edit:hover {
+  background-color: #f9fafb;
+  border-color: #9ca3af;
 }
 
-.account-input {
-  flex: 1;
-  border-bottom: 1px solid #ddd;
-}
-
-.account-input input {
-  width: 100%;
-  border: none;
-  outline: none;
-  padding: 6px 0;
-  font-size: 14px;
-  background: transparent;
-}
-
-.account-input input::placeholder {
-  color: #bbb;
-}
-
-.account-static {
-  flex: 1;
-  font-size: 14px;
-  border-bottom: 1px solid #ddd;
-  padding: 6px 0;
-}
-
-/* Nút 保存 */
-.account-actions {
+/* --- PROFILE CARD --- */
+.profile-card {
+  background: white;
+  border-radius: 12px;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+  padding: 32px;
   display: flex;
-  justify-content: center;
-  margin-top: 28px;
+  gap: 40px;
+  align-items: flex-start;
 }
 
-.account-save-btn {
-  border: none;
-  padding: 10px 40px;
-  border-radius: 999px;
-  background: #14b8a6;
-  color: #fff;
+/* Phần Avatar */
+.profile-avatar-section {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 16px;
+  width: 200px;
+  flex-shrink: 0;
+}
+
+.profile-avatar-large {
+  width: 150px;
+  height: 150px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 4px solid #f3f4f6;
+  box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+}
+
+.btn-upload {
+  padding: 8px 16px;
+  background-color: #eff6ff;
+  color: #1d4ed8;
   font-size: 14px;
+  font-weight: 600;
+  border-radius: 20px;
+  cursor: pointer;
+  transition: 0.2s;
+  text-align: center;
+}
+
+.btn-upload:hover {
+  background-color: #dbeafe;
+}
+
+/* Phần Thông tin */
+.profile-info-section {
+  flex: 1;
+  max-width: 600px;
+}
+
+/* Hiển thị thông tin (Read mode) */
+.info-display {
+  display: grid;
+  gap: 20px;
+}
+
+.info-item {
+  border-bottom: 1px solid #f3f4f6;
+  padding-bottom: 12px;
+}
+
+.info-item:last-child {
+  border-bottom: none;
+}
+
+.info-item label {
+  display: block;
+  font-size: 13px;
+  color: #6b7280;
+  margin-bottom: 4px;
+  text-transform: uppercase;
+  font-weight: 600;
+}
+
+.info-item p {
+  font-size: 16px;
+  color: #111827;
+  font-weight: 500;
+  margin: 0;
+}
+
+.bio-text {
+  line-height: 1.6;
+  color: #4b5563 !important;
+}
+
+.role-badge {
+  display: inline-block;
+  padding: 4px 12px;
+  border-radius: 9999px;
+  font-size: 12px;
+  font-weight: 600;
+  text-transform: capitalize;
+}
+
+.role-badge.instructor {
+  background-color: #fef3c7;
+  color: #d97706;
+}
+
+.role-badge.student {
+  background-color: #e0e7ff;
+  color: #4338ca;
+}
+
+/* Form chỉnh sửa (Edit mode) */
+.edit-form {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.form-group {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.form-group label {
+  font-size: 14px;
+  font-weight: 600;
+  color: #374151;
+}
+
+.form-group input,
+.form-group textarea {
+  padding: 10px 14px;
+  border: 1px solid #d1d5db;
+  border-radius: 6px;
+  font-size: 15px;
+  outline: none;
+  transition: border-color 0.2s;
+}
+
+.form-group input:focus,
+.form-group textarea:focus {
+  border-color: #14b8a6;
+  box-shadow: 0 0 0 3px rgba(20, 184, 166, 0.1);
+}
+
+.form-actions {
+  display: flex;
+  gap: 12px;
+  margin-top: 10px;
+}
+
+.btn-save {
+  padding: 10px 20px;
+  background-color: #14b8a6;
+  color: white;
+  border: none;
+  border-radius: 6px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: 0.2s;
+}
+
+.btn-save:hover {
+  background-color: #0d9488;
+}
+
+.btn-cancel {
+  padding: 10px 20px;
+  background-color: white;
+  border: 1px solid #d1d5db;
+  color: #374151;
+  border-radius: 6px;
+  font-weight: 600;
   cursor: pointer;
 }
 
-.account-save-btn:disabled {
-  opacity: 0.7;
-  cursor: default;
+.btn-cancel:hover {
+  background-color: #f3f4f6;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .dashboard-container {
+    flex-direction: column;
+  }
+  .dashboard-sidebar {
+    width: 100%;
+    padding: 10px;
+    border-right: none;
+    border-bottom: 1px solid #e5e7eb;
+  }
+  .profile-card {
+    flex-direction: column;
+    align-items: center;
+  }
+  .profile-avatar-section {
+    width: 100%;
+  }
+  .profile-info-section {
+    width: 100%;
+  }
 }

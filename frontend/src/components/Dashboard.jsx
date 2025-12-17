@@ -1,321 +1,212 @@
-// src/components/Dashboard.jsx
-import { useEffect, useState } from "react";
-import { useNavigate } from "react-router-dom";
-import { useAuth } from "../context/AuthContext";
-import "./css/Dashboard.css"; // nếu file ở src/components/css/Dashboard.css
+import { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { useAuth } from '../context/AuthContext';
+import { userService } from '../services/api';
+import '../components/css/dashboard.css'; 
 
 function Dashboard() {
-  const navigate = useNavigate();
   const { signout } = useAuth();
-
-  const [activeTab, setActiveTab] = useState("profile"); // "profile" | "customize"
-  const [profile, setProfile] = useState({
-    name: "",
-    first_name: "",
-    last_name: "",
-    organization: "",
-    language: "",
-    website: "",
-    email: "",
-    avatar_url: "",
-  });
-  const [avatarFile, setAvatarFile] = useState(null);
+  const navigate = useNavigate();
+  
+  const [profile, setProfile] = useState(null);
+  const [isEditing, setIsEditing] = useState(false);
   const [loading, setLoading] = useState(true);
-  const [saving, setSaving] = useState(false);
 
-  const token = localStorage.getItem("token");
+  // State cho form
+  const [formData, setFormData] = useState({
+    name: '',
+    bio: '',
+    avatarFile: null,
+    previewUrl: null
+  });
 
   useEffect(() => {
-    if (!token) {
-      navigate("/");
-      return;
-    }
-
-    const fetchProfile = async () => {
-      try {
-        const res = await fetch("/api/profile/me", {
-          headers: { Authorization: `Bearer ${token}` },
-        });
-        const data = await res.json();
-        setProfile((prev) => ({ ...prev, ...data }));
-      } catch (err) {
-        console.error("Load profile error", err);
-      } finally {
-        setLoading(false);
-      }
-    };
-
     fetchProfile();
-  }, [token, navigate]);
+  }, []);
 
-  const handleChange = (e) => {
-    const { name, value } = e.target;
-    setProfile((prev) => ({ ...prev, [name]: value }));
-  };
-
-  const handleSave = async (e) => {
-    e.preventDefault();
-    if (!token) return;
-    setSaving(true);
-
-    const formData = new FormData();
-    formData.append("first_name", profile.first_name || "");
-    formData.append("last_name", profile.last_name || "");
-    formData.append("organization", profile.organization || "");
-    formData.append("language", profile.language || "");
-    formData.append("website", profile.website || "");
-    if (avatarFile) {
-      formData.append("avatar", avatarFile);
-    }
-
+  const fetchProfile = async () => {
     try {
-      const res = await fetch("/api/profile/me", {
-        method: "PUT",
-        headers: { Authorization: `Bearer ${token}` },
-        body: formData,
+      const data = await userService.getProfile();
+      setProfile(data);
+      setFormData({
+        name: data.name,
+        bio: data.bio || '',
+        avatarFile: null,
+        previewUrl: data.avatar ? `http://localhost:5001${data.avatar}` : "https://via.placeholder.com/150"
       });
-      const data = await res.json();
-
-      if (!res.ok) {
-        alert(data.message || "サーバーエラーが発生しました");
-      } else {
-        setProfile((prev) => ({
-          ...prev,
-          avatar_url: data.avatar_url || prev.avatar_url,
-        }));
-        alert("プロフィールを更新しました");
-        setActiveTab("profile");
-      }
-    } catch (err) {
-      console.error("Update profile error", err);
-      alert("サーバーエラーが発生しました");
+    } catch (error) {
+      console.error("Lỗi tải profile:", error);
     } finally {
-      setSaving(false);
+      setLoading(false);
     }
   };
 
   const handleSignOut = () => {
     signout();
-    navigate("/");
+    navigate('/');
   };
 
-  if (loading) {
-    return (
-      <div className="account-page">
-        <div className="account-inner">読み込み中...</div>
-      </div>
-    );
-  }
+  const handleFileChange = (e) => {
+    const file = e.target.files[0];
+    if (file) {
+      setFormData({
+        ...formData,
+        avatarFile: file,
+        previewUrl: URL.createObjectURL(file)
+      });
+    }
+  };
 
-  const avatarSrc = profile.avatar_url
-    ? `http://localhost:5001${profile.avatar_url}`
-    : "https://ui-avatars.com/api/?name=User&background=14b8a6&color=ffffff";
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    try {
+      const data = new FormData();
+      data.append('name', formData.name);
+      data.append('bio', formData.bio);
+      if (formData.avatarFile) {
+        data.append('avatar', formData.avatarFile);
+      }
+
+      const res = await userService.updateProfile(data);
+      setProfile(res.user);
+      setIsEditing(false);
+      alert("Cập nhật thành công!");
+    } catch (error) {
+      alert("Lỗi cập nhật profile");
+    }
+  };
+
+  if (loading) return <div style={{padding: '50px', textAlign: 'center'}}>Đang tải dữ liệu...</div>;
 
   return (
-    <div className="account-page">
-      <div className="account-inner">
-        <h1 className="account-title">My Account</h1>
-
-        <div className="account-tabs">
-          <button
-            className={`account-tab ${
-              activeTab === "profile" ? "active" : ""
-            }`}
-            onClick={() => setActiveTab("profile")}
-          >
-            ホーム / プロフィール
-          </button>
-          <button
-            className={`account-tab ${
-              activeTab === "customize" ? "active" : ""
-            }`}
-            onClick={() => setActiveTab("customize")}
-          >
-            カスタマイズ
-          </button>
-          <button className="account-tab" disabled>
-            アカウント
-          </button>
-          <button className="account-tab" disabled>
-            支払い方法
-          </button>
-          <button className="account-tab" disabled>
-            通知
-          </button>
-          <button className="account-tab" disabled>
-            プライバシー
-          </button>
+    <div className="dashboard-container">
+      {/* SIDEBAR */}
+      <aside className="dashboard-sidebar">
+        <div className="sidebar-header">
+          <h2>Tài khoản</h2>
         </div>
+        <nav className="sidebar-nav">
+          <button className="nav-item active">
+            <i className="fa-regular fa-user"></i> Hồ sơ cá nhân
+          </button>
+          <button className="nav-item" onClick={() => navigate('/my-courses')}>
+            <i className="fa-solid fa-book-open"></i> Khóa học của tôi
+          </button>
+          <button className="nav-item" onClick={() => navigate('/cart')}>
+            <i className="fa-solid fa-cart-shopping"></i> Giỏ hàng
+          </button>
+          <button className="nav-item logout" onClick={handleSignOut}>
+            <i className="fa-solid fa-arrow-right-from-bracket"></i> Đăng xuất
+          </button>
+        </nav>
+      </aside>
 
-        <div className="account-avatar-wrap">
-          <div className="account-avatar-circle">
-            <img src={avatarSrc} alt="avatar" />
-          </div>
-
-          {activeTab === "customize" && (
-            <label className="account-avatar-change">
-              Thay đổi ảnh đại diện của bạn
-              <input
-                type="file"
-                accept="image/*"
-                style={{ display: "none" }}
-                onChange={(e) => setAvatarFile(e.target.files[0])}
-              />
-            </label>
+      {/* MAIN CONTENT */}
+      <main className="dashboard-main">
+        <div className="profile-header">
+          <h1>Hồ sơ của tôi</h1>
+          {!isEditing && (
+            <button className="btn-edit" onClick={() => setIsEditing(true)}>
+              <i className="fa-solid fa-pen"></i> Chỉnh sửa
+            </button>
           )}
         </div>
 
-        {activeTab === "profile" && (
-          <div className="account-form account-form-view">
-            <p className="account-desc">
-              Trên trang này, bạn có thể <strong>xem</strong> thông tin hồ sơ của
-              mình. Các giá trị hiển thị ở đây là dữ liệu đã lưu sau khi tuỳ
-              chỉnh.
-            </p>
-
-            <div className="account-row">
-              <div className="account-label">Tên được đặt</div>
-              <div className="account-static">{profile.name || "-"}</div>
-            </div>
-            <div className="account-row">
-              <div className="account-label">Tên</div>
-              <div className="account-static">{profile.first_name || "-"}</div>
-            </div>
-            <div className="account-row">
-              <div className="account-label">Họ</div>
-              <div className="account-static">{profile.last_name || "-"}</div>
-            </div>
-            <div className="account-row">
-              <div className="account-label">Liên kết</div>
-              <div className="account-static">{profile.website || "-"}</div>
-            </div>
-            <div className="account-row">
-              <div className="account-label">Ngôn ngữ</div>
-              <div className="account-static">{profile.language || "-"}</div>
-            </div>
-            <div className="account-row">
-              <div className="account-label">Tổ chức</div>
-              <div className="account-static">
-                {profile.organization || "-"}
+        <div className="profile-card">
+          {/* Cột trái: Avatar */}
+          <div className="profile-avatar-section">
+            <img 
+              src={formData.previewUrl || "https://via.placeholder.com/150"} 
+              alt="Avatar" 
+              className="profile-avatar-large"
+            />
+            {isEditing && (
+              <div className="file-upload-wrapper">
+                <label htmlFor="avatar-upload" className="btn-upload">
+                  <i className="fa-solid fa-camera"></i> Đổi ảnh
+                </label>
+                <input 
+                  id="avatar-upload" 
+                  type="file" 
+                  accept="image/*" 
+                  onChange={handleFileChange} 
+                  style={{display: 'none'}}
+                />
               </div>
-            </div>
-            <div className="account-row">
-              <div className="account-label">E-mail</div>
-              <div className="account-static">{profile.email || "-"}</div>
-            </div>
-
-            <div className="account-actions">
-              <button
-                type="button"
-                className="account-save-btn"
-                onClick={() => setActiveTab("customize")}
-              >
-                Chỉnh sửa (mở tab Tuỳ chỉnh)
-              </button>
-              <button
-                type="button"
-                className="btn-secondary"
-                onClick={handleSignOut}
-              >
-                ログアウト
-              </button>
-            </div>
+            )}
           </div>
-        )}
 
-        {activeTab === "customize" && (
-          <form onSubmit={handleSave} className="account-form">
-            <p className="account-desc">
-              Ở tab <strong>Tuỳ chỉnh</strong>, bạn có thể nhập / thay đổi các
-              trường như <strong>"Tên", "Họ", "Liên kết", "Ngôn ngữ"</strong>.
-              Sau khi lưu, các giá trị này sẽ hiển thị ở tab{" "}
-              <strong>Hồ sơ</strong>.
-            </p>
+          {/* Cột phải: Thông tin */}
+          <div className="profile-info-section">
+            {isEditing ? (
+              // FORM CHỈNH SỬA
+              <form onSubmit={handleSubmit} className="edit-form">
+                <div className="form-group">
+                  <label>Họ và tên</label>
+                  <input 
+                    type="text" 
+                    value={formData.name} 
+                    onChange={(e) => setFormData({...formData, name: e.target.value})}
+                    required
+                  />
+                </div>
 
-            <div className="account-row">
-              <div className="account-label">Tên</div>
-              <div className="account-input">
-                <input
-                  type="text"
-                  name="first_name"
-                  value={profile.first_name || ""}
-                  onChange={handleChange}
-                  placeholder="Tên"
-                />
+                <div className="form-group">
+                  <label>Giới thiệu bản thân (Bio)</label>
+                  <textarea 
+                    value={formData.bio} 
+                    onChange={(e) => setFormData({...formData, bio: e.target.value})}
+                    rows="5"
+                    placeholder="Hãy viết vài dòng về bạn..."
+                  />
+                </div>
+
+                <div className="form-actions">
+                  <button type="button" className="btn-cancel" onClick={() => {
+                    setIsEditing(false);
+                    // Reset lại form về dữ liệu gốc
+                    setFormData({
+                      ...formData,
+                      name: profile.name,
+                      bio: profile.bio || '',
+                      avatarFile: null,
+                      previewUrl: profile.avatar ? `http://localhost:5001${profile.avatar}` : "https://via.placeholder.com/150"
+                    });
+                  }}>Hủy bỏ</button>
+                  <button type="submit" className="btn-save">Lưu thay đổi</button>
+                </div>
+              </form>
+            ) : (
+              // HIỂN THỊ THÔNG TIN
+              <div className="info-display">
+                <div className="info-item">
+                  <label>Họ và tên</label>
+                  <p>{profile?.name}</p>
+                </div>
+                
+                <div className="info-item">
+                  <label>Email đăng nhập</label>
+                  <p>{profile?.email}</p>
+                </div>
+
+                <div className="info-item">
+                  <label>Vai trò hệ thống</label>
+                  <span className={`role-badge ${profile?.role}`}>
+                    {profile?.role === 'instructor' ? 'Giảng viên' : 'Học viên'}
+                  </span>
+                </div>
+
+                <div className="info-item">
+                  <label>Giới thiệu</label>
+                  <p className="bio-text">
+                    {profile?.bio ? profile.bio : <em style={{color: '#9ca3af'}}>Chưa cập nhật giới thiệu...</em>}
+                  </p>
+                </div>
               </div>
-            </div>
-
-            <div className="account-row">
-              <div className="account-label">Họ</div>
-              <div className="account-input">
-                <input
-                  type="text"
-                  name="last_name"
-                  value={profile.last_name || ""}
-                  onChange={handleChange}
-                  placeholder="Họ"
-                />
-              </div>
-            </div>
-
-            <div className="account-row">
-              <div className="account-label">Tổ chức</div>
-              <div className="account-input">
-                <input
-                  type="text"
-                  name="organization"
-                  value={profile.organization || ""}
-                  onChange={handleChange}
-                  placeholder="Công ty / Trường học…"
-                />
-              </div>
-            </div>
-
-            <div className="account-row">
-              <div className="account-label">Ngôn ngữ</div>
-              <div className="account-input">
-                <input
-                  type="text"
-                  name="language"
-                  value={profile.language || ""}
-                  onChange={handleChange}
-                  placeholder="Ví dụ: 日本語, English, Tiếng Việt"
-                />
-              </div>
-            </div>
-
-            <div className="account-row">
-              <div className="account-label">Liên kết</div>
-              <div className="account-input">
-                <input
-                  type="text"
-                  name="website"
-                  value={profile.website || ""}
-                  onChange={handleChange}
-                  placeholder="www.example.com"
-                />
-              </div>
-            </div>
-
-            <div className="account-actions">
-              <button
-                type="submit"
-                className="account-save-btn"
-                disabled={saving}
-              >
-                {saving ? "保存中..." : "保存"}
-              </button>
-              <button
-                type="button"
-                className="btn-secondary"
-                onClick={() => setActiveTab("profile")}
-              >
-                Huỷ & quay lại Hồ sơ
-              </button>
-            </div>
-          </form>
-        )}
-      </div>
+            )}
+          </div>
+        </div>
+      </main>
     </div>
   );
 }

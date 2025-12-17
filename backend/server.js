@@ -18,7 +18,6 @@ app.use("/api/auth", require("./routes/authRoutes"));
 app.use("/api/forum", require("./routes/forumRoutes"));
 app.use("/api/notifications", require("./routes/notificationRoutes"));
 
-// Thêm 2 route quan trọng này cho trang Home:
 app.use("/api/courses", require("./routes/courseRoutes"));
 app.use("/api/categories", require("./routes/categoryRoutes"));
 
@@ -26,6 +25,7 @@ app.use("/api/search", require("./routes/searchRoutes"));
 
 app.use("/api/cart", require("./routes/cartRoutes"));
 app.use("/api/enrollments", require("./routes/enrollmentRoutes"));
+app.use("/api/user", require("./routes/userRoutes"));
 const PORT = process.env.PORT || 5001;
 app.listen(PORT, () => {
   console.log(`🚀 Server running on port ${PORT}`);
