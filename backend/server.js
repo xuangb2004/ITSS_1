@@ -6,6 +6,9 @@ const cors = require("cors");
 const path = require("path");
 const db = require("./config/db"); // Import để đảm bảo DB kết nối
 
+const http = require("http");
+const { Server } = require("socket.io");
+
 const app = express();
 
 // Middleware
@@ -26,7 +29,31 @@ app.use("/api/search", require("./routes/searchRoutes"));
 app.use("/api/cart", require("./routes/cartRoutes"));
 app.use("/api/enrollments", require("./routes/enrollmentRoutes"));
 app.use("/api/user", require("./routes/userRoutes"));
+
+// Create HTTP server and attach Socket.IO
 const PORT = process.env.PORT || 5001;
-app.listen(PORT, () => {
+const httpServer = http.createServer(app);
+const io = new Server(httpServer, {
+  cors: { origin: '*' }
+});
+
+// Simple logging
+io.on('connection', (socket) => {
+  console.log('Socket connected:', socket.id);
+
+  socket.on('join_user_room', (userId) => {
+    // client can join a room named by userId to receive personal notifications
+    if (userId) socket.join(`user_${userId}`);
+  });
+
+  socket.on('disconnect', () => {
+    // console.log('Socket disconnected', socket.id);
+  });
+});
+
+// Expose io via a small module setter so controllers can emit
+require('./utils/notificationEmitter').setIO(io);
+
+httpServer.listen(PORT, () => {
   console.log(`🚀 Server running on port ${PORT}`);
 });

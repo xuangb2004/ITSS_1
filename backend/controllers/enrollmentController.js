@@ -1,4 +1,5 @@
 const db = require("../config/db");
+const notifier = require("../utils/notificationEmitter");
 
 // Đăng ký học (Mua khóa học)
 exports.enrollCourse = async (req, res) => {
@@ -31,6 +32,35 @@ exports.enrollCourse = async (req, res) => {
       await conn.query("DELETE FROM cart WHERE user_id = ? AND course_id = ?", [userId, courseId]);
 
       await conn.commit();
+
+      // Tạo thông báo cho giảng viên (nếu có) sau khi thanh toán thành công
+      try {
+        const [courseRow] = await db.query(
+          "SELECT c.title, i.user_id as instructor_user_id FROM courses c LEFT JOIN instructors i ON c.instructor_id = i.instructor_id WHERE c.course_id = ?",
+          [courseId]
+        );
+        if (courseRow.length > 0) {
+          const instrUserId = courseRow[0].instructor_user_id;
+          const courseTitle = courseRow[0].title || "(khóa học)";
+          if (instrUserId && instrUserId != userId) {
+            const [buyer] = await db.query("SELECT name FROM users WHERE user_id = ?", [userId]);
+            const buyerName = (buyer[0] && buyer[0].name) ? buyer[0].name : "Ai đó";
+            const notifTitle = "新しい注文があります"; // Có đơn hàng mới
+            const notifMessage = `${buyerName} さんがあなたのコース「${courseTitle}」を購入しました。`;
+
+            await db.query(
+              "INSERT INTO notifications (user_id, title, message) VALUES (?, ?, ?)",
+              [instrUserId, notifTitle, notifMessage]
+            );
+
+            // Emit realtime
+            notifier.emitNotification(instrUserId, { title: notifTitle, message: notifMessage, courseId });
+          }
+        }
+      } catch (emitErr) {
+        console.error('Notification emit error:', emitErr);
+      }
+
       res.json({ message: "Đăng ký thành công! Chúc bạn học tốt." });
     } catch (error) {
       await conn.rollback();

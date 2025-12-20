@@ -3,6 +3,7 @@ import { useAuth } from "./context/AuthContext";
 import Home from "./components/Home";
 import Dashboard from "./components/Dashboard";
 import Forum from "./components/Forum";
+import NotificationsPage from "./components/Notifications";
 import MyCoursesPage from "./pages/mycourses/MyCoursesPage";
 import CourseDetail from "./components/CourseDetail";
 import CartPage from "./components/CartPage";
@@ -43,6 +44,7 @@ function App() {
 
         {/* Forum */}
         <Route path="/forum" element={<Forum />} />
+        <Route path="/notifications" element={<PrivateRoute><NotificationsPage /></PrivateRoute>} />
         <Route path="/cart" element={<PrivateRoute><CartPage /></PrivateRoute>} />
         <Route 
           path="/create-course" 

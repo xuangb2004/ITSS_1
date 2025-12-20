@@ -1,4 +1,5 @@
 const db = require("../config/db");
+const notifier = require("../utils/notificationEmitter");
 
 // 0. (MỚI) Lấy danh sách danh mục/môn học
 exports.getCategories = async (req, res) => {
@@ -148,11 +149,17 @@ exports.replyToTopic = async (req, res) => {
 
         const notifTitle = "新しい返信があります"; // "Có phản hồi mới"
         const notifMessage = `${replierName} さんがあなたのトピック「${topicTitle}」に返信しました。`; // "A đã trả lời bài viết B của bạn"
-
         await db.query(
           "INSERT INTO notifications (user_id, title, message) VALUES (?, ?, ?)",
           [ownerId, notifTitle, notifMessage]
         );
+
+        // Emit realtime notification to owner (if connected)
+        notifier.emitNotification(ownerId, {
+          title: notifTitle,
+          message: notifMessage,
+          topicId
+        });
       }
     }
 
