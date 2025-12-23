@@ -8,6 +8,7 @@ import SignInModal from './SignInModal'
 import CourseCard from './CourseCard'
 import SearchBar from './SearchBar'
 import InstructorSignUpModal from './InstructorSignUpModal' // <--- Import Modal Giảng viên
+import PublishedCourses from './PublishedCourses';
 
 function Home() {
   const navigate = useNavigate()

@@ -212,6 +212,7 @@ SELECT course_id, COUNT(*) AS enroll_count
 FROM enrollments
 GROUP BY course_id;
 
+ALTER TABLE courses ADD COLUMN views INT DEFAULT 0;
 
 insert into elearning_platform.users (user_id,name,email,password_hash,role, avatar_url, created_at )
 values (1,'sherlock','sherlock@gmail.com','asdgasgasa','student','asgaggsd','2020-01-01 10:10:10 '),

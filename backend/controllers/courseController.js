@@ -186,3 +186,85 @@ exports.searchCourses = async (req, res) => {
         res.status(500).json({ message: "Lỗi tìm kiếm" });
     }
 };
+exports.getInstructorCourses = async (req, res) => {
+  try {
+    const userId = req.user.userId;
+
+    // Tìm instructor_id từ user_id
+    const [instructors] = await db.query("SELECT instructor_id FROM instructors WHERE user_id = ?", [userId]);
+    if (instructors.length === 0) {
+      return res.status(403).json({ message: "Bạn không phải là giảng viên" });
+    }
+    const instructorId = instructors[0].instructor_id;
+
+    // Query lấy khóa học + đếm số học viên (student_count) + số lượt xem (views)
+    const sql = `
+      SELECT c.*, 
+      (SELECT COUNT(*) FROM enrollments e WHERE e.course_id = c.course_id) as student_count
+      FROM courses c
+      WHERE c.instructor_id = ?
+      ORDER BY c.created_at DESC
+    `;
+    const [courses] = await db.query(sql, [instructorId]);
+
+    res.json({ courses });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: "Lỗi server" });
+  }
+};
+
+//  Cập nhật khóa học
+exports.updateCourse = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { title, description, price, level } = req.body;
+    const userId = req.user.userId;
+
+    // Kiểm tra quyền sở hữu (Phải join bảng để chắc chắn user này là chủ khóa học)
+    const checkSql = `
+      SELECT c.course_id FROM courses c
+      JOIN instructors i ON c.instructor_id = i.instructor_id
+      WHERE c.course_id = ? AND i.user_id = ?
+    `;
+    const [check] = await db.query(checkSql, [id, userId]);
+    if (check.length === 0) return res.status(403).json({ message: "Bạn không có quyền sửa khóa học này" });
+
+    // Update
+    await db.query(
+      "UPDATE courses SET title = ?, description = ?, price = ?, level = ? WHERE course_id = ?",
+      [title, description, price, level, id]
+    );
+
+    res.json({ message: "Cập nhật thành công" });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: "Lỗi server" });
+  }
+};
+
+//  Xóa khóa học
+exports.deleteCourse = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const userId = req.user.userId;
+
+    // Kiểm tra quyền sở hữu
+    const checkSql = `
+      SELECT c.course_id FROM courses c
+      JOIN instructors i ON c.instructor_id = i.instructor_id
+      WHERE c.course_id = ? AND i.user_id = ?
+    `;
+    const [check] = await db.query(checkSql, [id, userId]);
+    if (check.length === 0) return res.status(403).json({ message: "Bạn không có quyền xóa khóa học này" });
+
+    // Xóa (Các bảng liên quan như lessons, enrollments sẽ tự xóa nếu có ON DELETE CASCADE trong DB)
+    // Nếu DB chưa set Cascade, bạn phải xóa lessons trước. Ở đây giả định DB đã chuẩn.
+    await db.query("DELETE FROM courses WHERE course_id = ?", [id]);
+
+    res.json({ message: "Đã xóa khóa học" });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: "Lỗi server" });
+  }
+};

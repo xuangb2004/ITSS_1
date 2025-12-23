@@ -1,10 +1,10 @@
 const express = require("express");
 const router = express.Router();
-const courseController = require("../controllers/courseController"); 
-const upload = require("../middleware/uploadMiddleware"); 
+const courseController = require("../controllers/courseController");
+const upload = require("../middleware/uploadMiddleware");
 const jwt = require("jsonwebtoken");
 
-// Middleware xác thực (Kiểm tra token đăng nhập)
+// Middleware xác thực
 const verifyToken = (req, res, next) => {
   const authHeader = req.headers['authorization'];
   const token = authHeader && authHeader.split(' ')[1];
@@ -20,26 +20,25 @@ const verifyToken = (req, res, next) => {
 
 // --- CÁC ROUTE ---
 
-// GET /api/courses - Lấy tất cả khóa học
+// 1. Các route lấy danh sách chung
 router.get("/", courseController.getAllCourses);
-
-// GET /api/courses/recommended - Lấy khóa học được đề xuất
 router.get("/recommended", courseController.getRecommendedCourses);
-
-// GET /api/courses/trending - Lấy khóa học trending
 router.get("/trending", courseController.getTrendingCourses);
-
-// GET /api/courses/search - Tìm kiếm khóa học
 router.get("/search", courseController.searchCourses);
 
-// POST /api/courses/progress - Lưu tiến độ học tập (Cần đăng nhập)
+// 2. Route Tiến độ học tập (Cần đăng nhập)
 router.post("/progress", verifyToken, courseController.markLessonComplete);
-// ----------------------------------------
 
-// GET /api/courses/:id - Lấy chi tiết khóa học
+//  3. CÁC ROUTE QUẢN LÝ KHÓA HỌC (THÊM MỚI Ở ĐÂY) 
+router.get("/my-published", verifyToken, courseController.getInstructorCourses);
+router.put("/:id", verifyToken, courseController.updateCourse);
+router.delete("/:id", verifyToken, courseController.deleteCourse);
+// -------------------------------------------------------------
+
+// 4. Lấy chi tiết khóa học (Đặt cuối cùng vì nó bắt mọi ID)
 router.get("/:id", courseController.getCourseById);
 
-// POST /api/courses - Tạo khóa học
+// 5. Tạo khóa học
 router.post("/", verifyToken, upload.single('thumbnail'), courseController.createCourse);
 
 module.exports = router;
