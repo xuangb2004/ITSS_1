@@ -116,6 +116,10 @@ export const courseService = {
     const response = await api.get(`/courses/${id}`);
     return response.data;
   },
+  markLessonComplete: async (data) => {
+    const response = await api.post('/courses/progress', data);
+    return response.data;
+  },
   createCourse: async (formData) => {
     // Gửi FormData (bao gồm file và text)
     const response = await api.post('/courses', formData, {

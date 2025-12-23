@@ -14,9 +14,9 @@ const getYouTubeId = (url) => {
 
 // Hàm xử lý link ảnh an toàn
 const getImageUrl = (path) => {
-    if (!path) return "https://via.placeholder.com/400x200?text=No+Image";
+    if (!path) return "https://placehold.co/400x200?text=No+Image";
+    
     if (path.startsWith('http')) return path;
-    // Nếu là đường dẫn file upload từ backend
     return path; 
 };
 
@@ -29,6 +29,10 @@ function CourseDetail() {
   const [activeLesson, setActiveLesson] = useState(null); // Bài học đang chọn
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
+  
+  // State cho tiến độ học tập
+  const [progress, setProgress] = useState(0);
+  const [completedLessons, setCompletedLessons] = useState([]);
 
   useEffect(() => {
     const fetchCourse = async () => {
@@ -37,6 +41,10 @@ function CourseDetail() {
         const data = await courseService.getCourseById(id);
         setCourse(data.course);
         
+        // Cập nhật tiến độ từ API trả về
+        setProgress(data.progress || 0);
+        setCompletedLessons(data.completedMap || []);
+
         // Mặc định chọn bài đầu tiên nếu có danh sách bài học
         if(data.course.curriculum && data.course.curriculum.length > 0) {
             setActiveLesson(data.course.curriculum[0]);
@@ -60,6 +68,28 @@ function CourseDetail() {
     } catch (err) { alert(err.response?.data?.message || "Lỗi thêm vào giỏ"); }
   };
 
+  // Xử lý đánh dấu hoàn thành bài học
+  const handleMarkComplete = async () => {
+    if (!user || !activeLesson) return;
+    try {
+        const res = await courseService.markLessonComplete({
+            lessonId: activeLesson.lesson_id,
+            courseId: course.course_id
+        });
+        
+        setProgress(res.progress); // Cập nhật thanh tiến độ
+        
+        // Thêm bài hiện tại vào danh sách đã học (để hiện tick xanh)
+        if (!completedLessons.includes(activeLesson.lesson_id)) {
+            setCompletedLessons([...completedLessons, activeLesson.lesson_id]);
+        }
+        alert("Đã hoàn thành bài học!");
+    } catch (err) {
+        console.error(err);
+        alert("Lỗi khi cập nhật tiến độ");
+    }
+  };
+
   // Xử lý Mua ngay / Đăng ký
   const handleBuyNow = async () => {
     if (!user) { alert("Vui lòng đăng nhập"); return; }
@@ -81,7 +111,6 @@ function CourseDetail() {
   if (loading) return <div className="loading" style={{textAlign: 'center', padding: '50px'}}>Đang tải...</div>;
   if (!course) return <div style={{textAlign: 'center', padding: '50px'}}>Không tìm thấy khóa học</div>;
 
-  // Kiểm tra miễn phí
   const isFree = Number(course.price) === 0;
   const priceDisplay = isFree ? "Miễn phí" : `$${Number(course.price).toFixed(2)}`;
 
@@ -96,6 +125,14 @@ function CourseDetail() {
             <span>Trình độ: {course.level || 'Beginner'}</span> • 
             <span> Cập nhật: {new Date(course.created_at).toLocaleDateString()}</span>
           </div>
+          
+          {/* 👇 UI MỚI: THANH TIẾN ĐỘ (Chỉ hiện khi đã đăng nhập) */}
+          {user && (
+            <div style={{width: '100%', background: 'rgba(255,255,255,0.1)', height: '8px', borderRadius: '4px', margin: '15px 0', border: '1px solid rgba(255,255,255,0.2)'}}>
+                <div style={{width: `${progress}%`, background: '#10b981', height: '100%', borderRadius: '4px', transition: 'width 0.5s'}}></div>
+                <p style={{color: '#10b981', fontSize: '13px', marginTop: '5px', textAlign: 'right', fontWeight: 'bold'}}>{progress}% Hoàn thành</p>
+            </div>
+          )}
           
           {/* TRÌNH PHÁT VIDEO */}
           <div className="video-section" style={{marginTop: '20px'}}>
@@ -132,6 +169,27 @@ function CourseDetail() {
                      </h3>
                  </div>
              )}
+
+             {/* 👇 UI MỚI: NÚT HOÀN THÀNH BÀI HỌC (Chỉ hiện khi có user và bài học) */}
+             {activeLesson && user && (
+                <div style={{marginTop: '15px', display: 'flex', justifyContent: 'flex-end'}}>
+                    <button 
+                        onClick={handleMarkComplete}
+                        disabled={completedLessons.includes(activeLesson.lesson_id)}
+                        style={{
+                            padding: '10px 20px',
+                            background: completedLessons.includes(activeLesson.lesson_id) ? '#10b981' : '#2563eb',
+                            color: 'white', border: 'none', borderRadius: '6px', cursor: 'pointer', fontWeight: 'bold',
+                            display: 'flex', alignItems: 'center', gap: '8px'
+                        }}
+                    >
+                        {completedLessons.includes(activeLesson.lesson_id) ? 
+                            <> <i className="fa-solid fa-check"></i> Đã hoàn thành </> : 
+                            "Đánh dấu đã học xong"
+                        }
+                    </button>
+                </div>
+             )}
           </div>
         </div>
         <div className="hero-right"></div>
@@ -157,16 +215,22 @@ function CourseDetail() {
                         transition: 'background 0.2s'
                     }}
                   >
-                    <div style={{display: 'flex', alignItems: 'center', gap: '12px'}}>
+                    {/* 👇 UI MỚI: Thêm flex: 1 để đẩy dấu tick sang phải */}
+                    <div style={{display: 'flex', alignItems: 'center', gap: '12px', width: '100%'}}>
                         <i 
                             className={activeLesson?.lesson_id === lesson.lesson_id ? "fa-solid fa-circle-play" : "fa-regular fa-circle-play"} 
                             style={{color: activeLesson?.lesson_id === lesson.lesson_id ? '#2563eb' : '#9ca3af', fontSize: '18px'}}
                         ></i>
-                        <div>
+                        <div style={{flex: 1}}>
                             <span style={{fontWeight: activeLesson?.lesson_id === lesson.lesson_id ? '600' : '500', color: '#374151'}}>
                                 Bài {index + 1}: {lesson.title}
                             </span>
                         </div>
+                        
+                        {/* 👇 UI MỚI: Dấu tick xanh nếu bài đã học */}
+                        {completedLessons.includes(lesson.lesson_id) && (
+                             <i className="fa-solid fa-circle-check" style={{color: '#10b981', fontSize: '16px'}} title="Đã hoàn thành"></i>
+                        )}
                     </div>
                   </div>
                 ))
@@ -181,9 +245,12 @@ function CourseDetail() {
         <div className="sidebar-col">
           <div className="course-card-sidebar">
             <img 
-                src={getImageUrl(course.thumbnail)} 
-                alt={course.title} 
-                onError={(e) => {e.target.onerror = null; e.target.src="https://via.placeholder.com/400x200?text=No+Image"}}
+              src={getImageUrl(course.thumbnail)} 
+              alt={course.title} 
+              onError={(e) => {
+                e.target.onerror = null; 
+                e.target.src="https://placehold.co/400x200?text=No+Image"
+              }}
             />
             <div className="course-card-body">
               <div className="course-detail-price" style={{color: isFree ? '#16a34a' : '#111827'}}>
