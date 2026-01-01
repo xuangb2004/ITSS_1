@@ -1,0 +1,408 @@
+<!doctype html>
+<html lang="ja">
+  <head>
+    <meta charset="UTF-8" />
+    <title>コース詳細</title>
+    <style>
+      body {
+        font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI",
+          sans-serif;
+        margin: 0;
+        background: #dcfce7; /* 緑系の背景 */
+        color: #111827;
+      }
+
+      /* ヘッダー（Udemy風の黒系） */
+      header {
+        background: #1c1d1f;
+        color: white;
+        padding: 12px 40px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        font-size: 14px;
+      }
+
+      header a {
+        color: white;
+        text-decoration: none;
+        margin-left: 18px;
+      }
+
+      header a:hover {
+        text-decoration: underline;
+      }
+
+      .container {
+        max-width: 1200px;
+        margin: 0 auto 40px;
+      }
+
+      /* 上部ヒーローセクション（左：黒背景、右：カード） */
+      .hero {
+        display: grid;
+        grid-template-columns: minmax(0, 2.2fr) minmax(320px, 1.2fr);
+        gap: 24px;
+        margin: 24px 16px 0;
+      }
+
+      .hero-left {
+        background: #111827;
+        color: white;
+        padding: 24px;
+        border-radius: 4px;
+      }
+
+      .hero-left h1 {
+        margin: 0 0 8px;
+        font-size: 28px;
+      }
+
+      .hero-subtitle {
+        margin: 0 0 12px;
+        font-size: 15px;
+        color: #e5e7eb;
+      }
+
+      .hero-meta {
+        font-size: 13px;
+        color: #e5e7eb;
+        margin-bottom: 12px;
+      }
+
+      .hero-rating {
+        font-size: 13px;
+        margin-bottom: 8px;
+      }
+
+      .hero-rating span.score {
+        color: #fde68a;
+        font-weight: 700;
+      }
+
+      .hero-rating span.stars {
+        color: #facc15;
+        margin-left: 4px;
+      }
+
+      .hero-right {
+        position: relative;
+      }
+
+      .course-card {
+        background: white;
+        border-radius: 4px;
+        box-shadow: 0 8px 24px rgba(0, 0, 0, 0.25);
+        overflow: hidden;
+      }
+
+      .course-card img {
+        width: 100%;
+        display: block;
+      }
+
+      .course-card-body {
+        padding: 16px;
+      }
+
+      .course-card-price {
+        display: flex;
+        align-items: baseline;
+        gap: 8px;
+        margin-bottom: 12px;
+      }
+
+      .course-card-price .price {
+        font-size: 24px;
+        font-weight: 700;
+      }
+
+      .course-card-price .old-price {
+        text-decoration: line-through;
+        font-size: 13px;
+        color: #6b7280;
+      }
+
+      .course-card-buttons {
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+        margin-bottom: 12px;
+      }
+
+      .btn {
+        border: none;
+        padding: 10px 16px;
+        border-radius: 4px;
+        font-size: 14px;
+        cursor: pointer;
+      }
+
+      .btn.primary {
+        background: #16a34a; /* 緑系メインボタン */
+        color: white;
+        font-weight: 600;
+      }
+
+      .btn.secondary {
+        background: #e5e7eb;
+        color: #111827;
+        font-weight: 600;
+      }
+
+      .btn.ghost {
+        background: transparent;
+        border: 1px solid #9ca3af;
+        color: #111827;
+      }
+
+      .btn.tiny {
+        padding: 4px 8px;
+        font-size: 12px;
+        border-radius: 999px;
+        background: #16a34a;
+        color: white;
+      }
+
+      .card-note {
+        font-size: 12px;
+        color: #4b5563;
+      }
+
+      .preview-main-btn {
+        position: absolute;
+        bottom: 12px;
+        left: 12px;
+        padding: 8px 14px;
+        border-radius: 999px;
+        border: none;
+        background: rgba(0, 0, 0, 0.85);
+        color: white;
+        cursor: pointer;
+        font-size: 13px;
+        display: none;
+      }
+
+      .message {
+        font-size: 13px;
+        color: #065f46;
+        margin-top: 6px;
+      }
+
+      /* メインセクション */
+      main {
+        margin: 16px;
+        display: grid;
+        grid-template-columns: minmax(0, 2.2fr) minmax(260px, 1.1fr);
+        gap: 24px;
+      }
+
+      section.block {
+        background: white;
+        border-radius: 4px;
+        padding: 20px;
+        margin-bottom: 16px;
+      }
+
+      section.block h2 {
+        margin: 0 0 12px;
+        font-size: 20px;
+      }
+
+      #course-objectives {
+        padding-left: 18px;
+        margin: 0;
+      }
+
+      .curriculum-section h3 {
+        margin: 0 0 8px;
+        font-size: 16px;
+      }
+
+      .curriculum-section ul {
+        list-style: none;
+        padding-left: 0;
+        margin: 0 0 8px;
+      }
+
+      .lesson-item {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 6px 0;
+        border-bottom: 1px solid #e5e7eb;
+        gap: 8px;
+      }
+
+      .lesson-duration {
+        font-size: 12px;
+        color: #6b7280;
+        margin-right: 8px;
+      }
+
+      .instructor {
+        display: flex;
+        gap: 16px;
+      }
+
+      .instructor img {
+        width: 72px;
+        height: 72px;
+        border-radius: 50%;
+        object-fit: cover;
+      }
+
+      .rating-summary {
+        margin-bottom: 12px;
+      }
+
+      .rating-score {
+        font-size: 32px;
+        font-weight: 700;
+        color: #22c55e;
+      }
+
+      .review-item {
+        border-top: 1px solid #e5e7eb;
+        padding: 8px 0;
+        font-size: 14px;
+      }
+
+      .review-rating {
+        margin-left: 6px;
+        color: #22c55e;
+      }
+
+      #loading,
+      #error {
+        text-align: center;
+        padding: 40px 0;
+      }
+
+      @media (max-width: 900px) {
+        .hero,
+        main {
+          grid-template-columns: 1fr;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <header>
+      <div><strong>オンライン学習プラットフォーム</strong></div>
+      <nav>
+        <a href="course-detail.html?courseId=1">コース一覧</a>
+        <a href="cart.html">カート</a>
+        <a href="checkout.html">支払い</a>
+      </nav>
+    </header>
+
+    <div class="container">
+      <div id="loading">コースを読み込み中...</div>
+      <div id="error" style="display: none; color: red">
+        コース情報を取得できませんでした。
+      </div>
+
+      <div id="course-content" style="display: none">
+        <!-- Udemy風ヒーロー -->
+        <div class="hero">
+          <div class="hero-left">
+            <h1 id="course-title"></h1>
+            <p class="hero-subtitle" id="course-subtitle"></p>
+            <p class="hero-meta" id="course-meta"></p>
+            <div class="hero-rating">
+              <span class="score" id="hero-rating-score">4.7</span>
+              <span class="stars">★★★★★</span>
+              <span id="hero-rating-detail"></span>
+            </div>
+          </div>
+
+          <div class="hero-right">
+            <div class="course-card">
+              <img id="course-thumbnail" alt="course thumbnail" />
+              <button
+                id="preview-main-btn"
+                class="preview-main-btn"
+              >
+                このコースをプレビュー
+              </button>
+
+              <div class="course-card-body">
+                <div class="course-card-price">
+                  <span class="price" id="course-price"></span>
+                  <span
+                    class="old-price"
+                    id="course-old-price"
+                    style="display: none"
+                  ></span>
+                </div>
+                <div class="course-card-buttons">
+                  <button class="btn primary" id="btn-buy-now">
+                    今すぐ購入
+                  </button>
+                  <button class="btn secondary" id="btn-add-cart">
+                    カートに追加
+                  </button>
+                  <button class="btn ghost" id="btn-add-wishlist">
+                    ウィッシュリストに追加
+                  </button>
+                </div>
+                <div class="card-note">
+                  30日間返金保証・いつでもどこでも視聴可能
+                </div>
+                <div class="message" id="message"></div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- メインコンテンツ -->
+        <main>
+          <div>
+            <section class="block">
+              <h2>コース概要</h2>
+              <p id="course-description"></p>
+            </section>
+
+            <section class="block">
+              <h2>このコースで学べること</h2>
+              <ul id="course-objectives"></ul>
+            </section>
+
+            <section class="block">
+              <h2>コース内容（カリキュラム）</h2>
+              <div id="course-curriculum"></div>
+            </section>
+          </div>
+
+          <div>
+            <section class="block">
+              <h2>講師情報</h2>
+              <div class="instructor">
+                <img id="instructor-avatar" alt="instructor" />
+                <div>
+                  <h3 id="instructor-name"></h3>
+                  <p id="instructor-title"></p>
+                  <p id="instructor-bio"></p>
+                  <p id="instructor-stats"></p>
+                </div>
+              </div>
+            </section>
+
+            <section class="block">
+              <h2>受講生のレビュー</h2>
+              <div class="rating-summary">
+                <div class="rating-score" id="rating-score"></div>
+                <div id="rating-detail"></div>
+              </div>
+              <div id="reviews"></div>
+            </section>
+          </div>
+        </main>
+      </div>
+    </div>
+
+    <script src="js/api.js"></script>
+    <script src="js/course-detail.js"></script>
+  </body>
+</html>
