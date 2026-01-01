@@ -1,7 +1,6 @@
 import axios from 'axios';
 
-const API_URL = 'http://localhost:5001/api';
-
+const API_URL = import.meta.env.VITE_API_URL || "http://localhost:5001/api";
 const api = axios.create({
   baseURL: API_URL,
   headers: {
@@ -130,6 +129,14 @@ export const courseService = {
   },
   deleteCourse: async (id) => {
     const response = await api.delete(`/courses/${id}`);
+    return response.data;
+  },
+  getReviews: async (courseId) => {
+    const response = await api.get(`/courses/${courseId}/reviews`);
+    return response.data;
+  },
+  addReview: async (courseId, data) => { // data: { rating, comment }
+    const response = await api.post(`/courses/${courseId}/reviews`, data);
     return response.data;
   },
   createCourse: async (formData) => {

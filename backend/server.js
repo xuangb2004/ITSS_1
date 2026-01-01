@@ -29,7 +29,9 @@ app.use("/api/search", require("./routes/searchRoutes"));
 app.use("/api/cart", require("./routes/cartRoutes"));
 app.use("/api/enrollments", require("./routes/enrollmentRoutes"));
 app.use("/api/user", require("./routes/userRoutes"));
-
+app.get("/", (req, res) => {
+  res.send("🚀 Backend ITSS is running!");
+});
 // Create HTTP server and attach Socket.IO
 const PORT = process.env.PORT || 5001;
 const httpServer = http.createServer(app);

@@ -148,28 +148,7 @@ function Home() {
             <i className="fa-solid fa-leaf"></i>
             <span>MyCourse.io</span>
           </div>
-          
-          {user && (
-            <div className="browse-dropdown">
-              <button className="browse-btn">
-                ブラウズへ
-                <i className="fa-solid fa-chevron-down"></i>
-              </button>
-
-              <div className="browse-menu">
-                <div className="browse-menu-item">すべてのコース</div>
-                <div className="browse-menu-item">カテゴリー</div>
-                <div className="browse-menu-item">インストラクター</div>
-
-                <div
-                  className="browse-menu-item"
-                  onClick={() => navigate('/my-courses')}
-                >
-                  マイコース
-                </div>
-              </div>
-            </div>
-          )}
+        
 
           
           <SearchBar />

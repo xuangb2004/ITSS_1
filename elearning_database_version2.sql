@@ -1,234 +1,430 @@
--- Create database
-CREATE DATABASE IF NOT EXISTS elearning_platform;
-USE elearning_platform;
+-- MySQL dump 10.13  Distrib 8.0.40, for Win64 (x86_64)
+--
+-- Host: localhost    Database: elearning_platform
+-- ------------------------------------------------------
+-- Server version	9.1.0
 
--- Users
-CREATE TABLE users (
-    user_id INT AUTO_INCREMENT PRIMARY KEY,
-    name VARCHAR(100) NOT NULL,
-    email VARCHAR(150) UNIQUE NOT NULL,
-    password_hash TEXT NOT NULL,
-    role ENUM('student','instructor','admin') DEFAULT 'student',
-    avatar_url TEXT,
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-);
+/*!40101 SET @OLD_CHARACTER_SET_CLIENT=@@CHARACTER_SET_CLIENT */;
+/*!40101 SET @OLD_CHARACTER_SET_RESULTS=@@CHARACTER_SET_RESULTS */;
+/*!40101 SET @OLD_COLLATION_CONNECTION=@@COLLATION_CONNECTION */;
+/*!50503 SET NAMES utf8 */;
+/*!40103 SET @OLD_TIME_ZONE=@@TIME_ZONE */;
+/*!40103 SET TIME_ZONE='+00:00' */;
+/*!40014 SET @OLD_UNIQUE_CHECKS=@@UNIQUE_CHECKS, UNIQUE_CHECKS=0 */;
+/*!40014 SET @OLD_FOREIGN_KEY_CHECKS=@@FOREIGN_KEY_CHECKS, FOREIGN_KEY_CHECKS=0 */;
+/*!40101 SET @OLD_SQL_MODE=@@SQL_MODE, SQL_MODE='NO_AUTO_VALUE_ON_ZERO' */;
+/*!40111 SET @OLD_SQL_NOTES=@@SQL_NOTES, SQL_NOTES=0 */;
 
--- Instructors
-CREATE TABLE instructors (
-    instructor_id INT AUTO_INCREMENT PRIMARY KEY,
-    user_id INT NOT NULL UNIQUE,
-    bio TEXT,
-    expertise VARCHAR(255),
-    FOREIGN KEY (user_id) REFERENCES users(user_id) ON DELETE CASCADE
-);
+--
+-- Table structure for table `cart`
+--
+CREATE DATABASE IF NOT EXISTS baiekfzav7cxz8andbbd;
+USE baiekfzav7cxz8andbbd;
+DROP TABLE IF EXISTS `cart`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!50503 SET character_set_client = utf8mb4 */;
+CREATE TABLE `cart` (
+  `user_id` int NOT NULL,
+  `course_id` int NOT NULL,
+  `created_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (`user_id`,`course_id`),
+  KEY `course_id` (`course_id`),
+  CONSTRAINT `cart_ibfk_1` FOREIGN KEY (`user_id`) REFERENCES `users` (`user_id`) ON DELETE CASCADE,
+  CONSTRAINT `cart_ibfk_2` FOREIGN KEY (`course_id`) REFERENCES `courses` (`course_id`) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
 
--- Categories
-CREATE TABLE categories (
-    category_id INT AUTO_INCREMENT PRIMARY KEY,
-    name VARCHAR(100) UNIQUE NOT NULL
-);
+--
+-- Table structure for table `categories`
+--
 
--- Courses
-CREATE TABLE courses (
-    course_id INT AUTO_INCREMENT PRIMARY KEY,
-    instructor_id INT,
-    title VARCHAR(255) NOT NULL,
-    description TEXT,
-    level ENUM('beginner','intermediate','advanced') DEFAULT 'beginner',
-    price DECIMAL(10,2) DEFAULT 0,
-    thumbnail TEXT,
-    category_id INT,
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    FOREIGN KEY (instructor_id) REFERENCES instructors(instructor_id) ON DELETE SET NULL,
-    FOREIGN KEY (category_id) REFERENCES categories(category_id) ON DELETE SET NULL
-);
+DROP TABLE IF EXISTS `categories`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!50503 SET character_set_client = utf8mb4 */;
+CREATE TABLE `categories` (
+  `category_id` int NOT NULL AUTO_INCREMENT,
+  `name` varchar(100) NOT NULL,
+  PRIMARY KEY (`category_id`),
+  UNIQUE KEY `name` (`name`)
+) ENGINE=InnoDB AUTO_INCREMENT=5 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
 
--- Tags
-CREATE TABLE tags (
-    tag_id INT AUTO_INCREMENT PRIMARY KEY,
-    name VARCHAR(50) UNIQUE NOT NULL
-);
+--
+-- Temporary view structure for view `course_popularity`
+--
 
--- N-N course <-> tags
-CREATE TABLE course_tags (
-    course_id INT,
-    tag_id INT,
-    PRIMARY KEY (course_id, tag_id),
-    FOREIGN KEY (course_id) REFERENCES courses(course_id) ON DELETE CASCADE,
-    FOREIGN KEY (tag_id) REFERENCES tags(tag_id) ON DELETE CASCADE
-);
+DROP TABLE IF EXISTS `course_popularity`;
+/*!50001 DROP VIEW IF EXISTS `course_popularity`*/;
+SET @saved_cs_client     = @@character_set_client;
+/*!50503 SET character_set_client = utf8mb4 */;
+/*!50001 CREATE VIEW `course_popularity` AS SELECT 
+ 1 AS `course_id`,
+ 1 AS `enroll_count`*/;
+SET character_set_client = @saved_cs_client;
 
--- Lessons
-CREATE TABLE lessons (
-    lesson_id INT AUTO_INCREMENT PRIMARY KEY,
-    course_id INT NOT NULL,
-    title VARCHAR(255) NOT NULL,
-    content TEXT,
-    video_url TEXT,
-    position INT,
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    FOREIGN KEY (course_id) REFERENCES courses(course_id) ON DELETE CASCADE
-);
+--
+-- Table structure for table `course_tags`
+--
 
--- Enrollments
-CREATE TABLE enrollments (
-    enrollment_id INT AUTO_INCREMENT PRIMARY KEY,
-    user_id INT NOT NULL,
-    course_id INT NOT NULL,
-    enrolled_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    progress INT DEFAULT 0,
-    UNIQUE (user_id, course_id),
-    FOREIGN KEY (user_id) REFERENCES users(user_id) ON DELETE CASCADE,
-    FOREIGN KEY (course_id) REFERENCES courses(course_id) ON DELETE CASCADE
-);
+DROP TABLE IF EXISTS `course_tags`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!50503 SET character_set_client = utf8mb4 */;
+CREATE TABLE `course_tags` (
+  `course_id` int NOT NULL,
+  `tag_id` int NOT NULL,
+  PRIMARY KEY (`course_id`,`tag_id`),
+  KEY `tag_id` (`tag_id`),
+  CONSTRAINT `course_tags_ibfk_1` FOREIGN KEY (`course_id`) REFERENCES `courses` (`course_id`) ON DELETE CASCADE,
+  CONSTRAINT `course_tags_ibfk_2` FOREIGN KEY (`tag_id`) REFERENCES `tags` (`tag_id`) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
 
--- Lesson progress
-CREATE TABLE lesson_progress (
-    id INT AUTO_INCREMENT PRIMARY KEY,
-    user_id INT NOT NULL,
-    lesson_id INT NOT NULL,
-    last_watched_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    watched_duration INT DEFAULT 0,
-    is_completed BOOLEAN DEFAULT FALSE,
-    UNIQUE (user_id, lesson_id),
-    FOREIGN KEY (user_id) REFERENCES users(user_id) ON DELETE CASCADE,
-    FOREIGN KEY (lesson_id) REFERENCES lessons(lesson_id) ON DELETE CASCADE
-);
+--
+-- Table structure for table `courses`
+--
 
--- Payments
-CREATE TABLE payments (
-    payment_id INT AUTO_INCREMENT PRIMARY KEY,
-    user_id INT NOT NULL,
-    course_id INT NOT NULL,
-    amount DECIMAL(10,2),
-    payment_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    FOREIGN KEY (user_id) REFERENCES users(user_id) ON DELETE CASCADE,
-    FOREIGN KEY (course_id) REFERENCES courses(course_id) ON DELETE CASCADE
-);
+DROP TABLE IF EXISTS `courses`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!50503 SET character_set_client = utf8mb4 */;
+CREATE TABLE `courses` (
+  `course_id` int NOT NULL AUTO_INCREMENT,
+  `instructor_id` int DEFAULT NULL,
+  `title` varchar(255) NOT NULL,
+  `description` text,
+  `level` enum('beginner','intermediate','advanced') DEFAULT 'beginner',
+  `price` decimal(10,2) DEFAULT '0.00',
+  `thumbnail` text,
+  `created_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP,
+  `category_id` int DEFAULT NULL,
+  `views` int DEFAULT '0',
+  PRIMARY KEY (`course_id`),
+  KEY `idx_courses_instructor` (`instructor_id`),
+  KEY `idx_courses_category` (`category_id`),
+  FULLTEXT KEY `title` (`title`,`description`),
+  CONSTRAINT `courses_ibfk_1` FOREIGN KEY (`instructor_id`) REFERENCES `instructors` (`instructor_id`) ON DELETE SET NULL,
+  CONSTRAINT `fk_courses_categories` FOREIGN KEY (`category_id`) REFERENCES `categories` (`category_id`) ON DELETE SET NULL
+) ENGINE=InnoDB AUTO_INCREMENT=10 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
 
--- Lesson Comments
-CREATE TABLE lesson_comments (
-    comment_id INT AUTO_INCREMENT PRIMARY KEY,
-    lesson_id INT NOT NULL,
-    user_id INT NOT NULL,
-    content TEXT NOT NULL,
-    rating INT CHECK (rating BETWEEN 0 AND 5),
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    FOREIGN KEY (lesson_id) REFERENCES lessons(lesson_id) ON DELETE CASCADE,
-    FOREIGN KEY (user_id) REFERENCES users(user_id) ON DELETE CASCADE
-);
+--
+-- Table structure for table `enrollments`
+--
 
--- Instructor Comments
-CREATE TABLE instructor_comments (
-    comment_id INT AUTO_INCREMENT PRIMARY KEY,
-    instructor_id INT NOT NULL,
-    user_id INT NOT NULL,
-    content TEXT NOT NULL,
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    FOREIGN KEY (instructor_id) REFERENCES instructors(instructor_id) ON DELETE CASCADE,
-    FOREIGN KEY (user_id) REFERENCES users(user_id) ON DELETE CASCADE
-);
+DROP TABLE IF EXISTS `enrollments`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!50503 SET character_set_client = utf8mb4 */;
+CREATE TABLE `enrollments` (
+  `enrollment_id` int NOT NULL AUTO_INCREMENT,
+  `user_id` int DEFAULT NULL,
+  `course_id` int DEFAULT NULL,
+  `enrolled_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP,
+  `progress` int DEFAULT '0',
+  PRIMARY KEY (`enrollment_id`),
+  UNIQUE KEY `user_id` (`user_id`,`course_id`),
+  KEY `idx_enrollments_user` (`user_id`),
+  KEY `idx_enrollments_course` (`course_id`),
+  CONSTRAINT `enrollments_ibfk_1` FOREIGN KEY (`user_id`) REFERENCES `users` (`user_id`) ON DELETE CASCADE,
+  CONSTRAINT `enrollments_ibfk_2` FOREIGN KEY (`course_id`) REFERENCES `courses` (`course_id`) ON DELETE CASCADE
+) ENGINE=InnoDB AUTO_INCREMENT=15 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
 
--- Forum Topics
-CREATE TABLE forum_topics (
-    topic_id INT AUTO_INCREMENT PRIMARY KEY,
-    course_id INT NOT NULL,
-    user_id INT NOT NULL,
-    title VARCHAR(255) NOT NULL,
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    FOREIGN KEY (course_id) REFERENCES courses(course_id) ON DELETE CASCADE,
-    FOREIGN KEY (user_id) REFERENCES users(user_id) ON DELETE CASCADE
-);
+--
+-- Table structure for table `forum_post_likes`
+--
 
--- Forum Posts
-CREATE TABLE forum_posts (
-    post_id INT AUTO_INCREMENT PRIMARY KEY,
-    topic_id INT NOT NULL,
-    user_id INT NOT NULL,
-    content TEXT NOT NULL,
-    attachment_url TEXT DEFAULT NULL,
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    FOREIGN KEY (topic_id) REFERENCES forum_topics(topic_id) ON DELETE CASCADE,
-    FOREIGN KEY (user_id) REFERENCES users(user_id) ON DELETE CASCADE
-);
+DROP TABLE IF EXISTS `forum_post_likes`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!50503 SET character_set_client = utf8mb4 */;
+CREATE TABLE `forum_post_likes` (
+  `like_id` int NOT NULL AUTO_INCREMENT,
+  `user_id` int NOT NULL,
+  `post_id` int NOT NULL,
+  `created_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (`like_id`),
+  UNIQUE KEY `user_id` (`user_id`,`post_id`),
+  KEY `post_id` (`post_id`),
+  CONSTRAINT `forum_post_likes_ibfk_1` FOREIGN KEY (`user_id`) REFERENCES `users` (`user_id`) ON DELETE CASCADE,
+  CONSTRAINT `forum_post_likes_ibfk_2` FOREIGN KEY (`post_id`) REFERENCES `forum_posts` (`post_id`) ON DELETE CASCADE
+) ENGINE=InnoDB AUTO_INCREMENT=7 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
 
--- Likes
-CREATE TABLE forum_post_likes (
-    like_id INT AUTO_INCREMENT PRIMARY KEY,
-    user_id INT NOT NULL,
-    post_id INT NOT NULL,
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    UNIQUE(user_id, post_id),
-    FOREIGN KEY (user_id) REFERENCES users(user_id) ON DELETE CASCADE,
-    FOREIGN KEY (post_id) REFERENCES forum_posts(post_id) ON DELETE CASCADE
-);
+--
+-- Table structure for table `forum_posts`
+--
 
--- Notifications
-CREATE TABLE notifications (
-    notification_id INT AUTO_INCREMENT PRIMARY KEY,
-    user_id INT NOT NULL,
-    title TEXT NOT NULL,
-    message TEXT NOT NULL,
-    is_read BOOLEAN DEFAULT FALSE,
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    FOREIGN KEY (user_id) REFERENCES users(user_id) ON DELETE CASCADE
-);
+DROP TABLE IF EXISTS `forum_posts`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!50503 SET character_set_client = utf8mb4 */;
+CREATE TABLE `forum_posts` (
+  `post_id` int NOT NULL AUTO_INCREMENT,
+  `topic_id` int DEFAULT NULL,
+  `user_id` int DEFAULT NULL,
+  `content` text NOT NULL,
+  `created_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP,
+  `attachment_url` text,
+  PRIMARY KEY (`post_id`),
+  KEY `user_id` (`user_id`),
+  KEY `idx_forum_posts_topic` (`topic_id`),
+  FULLTEXT KEY `content` (`content`),
+  CONSTRAINT `forum_posts_ibfk_1` FOREIGN KEY (`topic_id`) REFERENCES `forum_topics` (`topic_id`) ON DELETE CASCADE,
+  CONSTRAINT `forum_posts_ibfk_2` FOREIGN KEY (`user_id`) REFERENCES `users` (`user_id`) ON DELETE CASCADE
+) ENGINE=InnoDB AUTO_INCREMENT=29 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
 
--- Indexes
-CREATE INDEX idx_users_email ON users(email);
-CREATE INDEX idx_courses_instructor ON courses(instructor_id);
-CREATE INDEX idx_courses_category ON courses(category_id);
-CREATE INDEX idx_courses_level ON courses(level);
-CREATE INDEX idx_courses_price ON courses(price);
+--
+-- Table structure for table `forum_topics`
+--
 
-CREATE INDEX idx_lessons_course ON lessons(course_id);
-CREATE INDEX idx_lessons_position ON lessons(course_id, position);
+DROP TABLE IF EXISTS `forum_topics`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!50503 SET character_set_client = utf8mb4 */;
+CREATE TABLE `forum_topics` (
+  `topic_id` int NOT NULL AUTO_INCREMENT,
+  `category_id` int DEFAULT NULL,
+  `user_id` int DEFAULT NULL,
+  `title` varchar(255) NOT NULL,
+  `created_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (`topic_id`),
+  KEY `user_id` (`user_id`),
+  KEY `idx_forum_topics_course` (`category_id`),
+  FULLTEXT KEY `title` (`title`),
+  CONSTRAINT `forum_topics_ibfk_1` FOREIGN KEY (`category_id`) REFERENCES `courses` (`course_id`) ON DELETE CASCADE,
+  CONSTRAINT `forum_topics_ibfk_2` FOREIGN KEY (`user_id`) REFERENCES `users` (`user_id`) ON DELETE CASCADE
+) ENGINE=InnoDB AUTO_INCREMENT=25 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
 
-CREATE INDEX idx_enrollments_user ON enrollments(user_id);
-CREATE INDEX idx_enrollments_course ON enrollments(course_id);
+--
+-- Table structure for table `instructor_comments`
+--
 
-CREATE INDEX idx_lesson_progress_user ON lesson_progress(user_id);
-CREATE INDEX idx_lesson_progress_lesson ON lesson_progress(lesson_id);
+DROP TABLE IF EXISTS `instructor_comments`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!50503 SET character_set_client = utf8mb4 */;
+CREATE TABLE `instructor_comments` (
+  `comment_id` int NOT NULL AUTO_INCREMENT,
+  `instructor_id` int DEFAULT NULL,
+  `user_id` int DEFAULT NULL,
+  `content` text NOT NULL,
+  `created_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (`comment_id`),
+  KEY `instructor_id` (`instructor_id`),
+  KEY `user_id` (`user_id`),
+  CONSTRAINT `instructor_comments_ibfk_1` FOREIGN KEY (`instructor_id`) REFERENCES `instructors` (`instructor_id`) ON DELETE CASCADE,
+  CONSTRAINT `instructor_comments_ibfk_2` FOREIGN KEY (`user_id`) REFERENCES `users` (`user_id`) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
 
-CREATE INDEX idx_forum_topics_course ON forum_topics(course_id);
-CREATE INDEX idx_forum_posts_topic ON forum_posts(topic_id);
+--
+-- Table structure for table `instructors`
+--
 
-CREATE INDEX idx_notifications_user ON notifications(user_id);
+DROP TABLE IF EXISTS `instructors`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!50503 SET character_set_client = utf8mb4 */;
+CREATE TABLE `instructors` (
+  `instructor_id` int NOT NULL AUTO_INCREMENT,
+  `user_id` int DEFAULT NULL,
+  `bio` text,
+  `expertise` varchar(255) DEFAULT NULL,
+  PRIMARY KEY (`instructor_id`),
+  KEY `user_id` (`user_id`),
+  CONSTRAINT `instructors_ibfk_1` FOREIGN KEY (`user_id`) REFERENCES `users` (`user_id`) ON DELETE CASCADE
+) ENGINE=InnoDB AUTO_INCREMENT=4 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
 
--- FULLTEXT Index (MySQL)
-ALTER TABLE courses ADD FULLTEXT(title, description);
-ALTER TABLE users 
-ADD COLUMN avatar VARCHAR(255) DEFAULT NULL,
-ADD COLUMN bio TEXT DEFAULT NULL;
--- Thêm chỉ mục tìm kiếm văn bản cho nội dung bài viết
-ALTER TABLE forum_posts ADD FULLTEXT(content);
+--
+-- Table structure for table `lesson_comments`
+--
 
--- (Tùy chọn) Thêm cho tiêu đề topic nếu muốn tìm cả tiêu đề
-ALTER TABLE forum_topics ADD FULLTEXT(title);
+DROP TABLE IF EXISTS `lesson_comments`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!50503 SET character_set_client = utf8mb4 */;
+CREATE TABLE `lesson_comments` (
+  `comment_id` int NOT NULL AUTO_INCREMENT,
+  `lesson_id` int DEFAULT NULL,
+  `user_id` int DEFAULT NULL,
+  `content` text NOT NULL,
+  `rating` int DEFAULT NULL,
+  `created_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (`comment_id`),
+  KEY `lesson_id` (`lesson_id`),
+  KEY `user_id` (`user_id`),
+  CONSTRAINT `lesson_comments_ibfk_1` FOREIGN KEY (`lesson_id`) REFERENCES `lessons` (`lesson_id`) ON DELETE CASCADE,
+  CONSTRAINT `lesson_comments_ibfk_2` FOREIGN KEY (`user_id`) REFERENCES `users` (`user_id`) ON DELETE CASCADE,
+  CONSTRAINT `lesson_comments_chk_1` CHECK ((`rating` between 0 and 5))
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
 
--- Popularity view
-CREATE VIEW course_popularity AS
-SELECT course_id, COUNT(*) AS enroll_count
-FROM enrollments
-GROUP BY course_id;
+--
+-- Table structure for table `lesson_progress`
+--
 
-ALTER TABLE courses ADD COLUMN views INT DEFAULT 0;
+DROP TABLE IF EXISTS `lesson_progress`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!50503 SET character_set_client = utf8mb4 */;
+CREATE TABLE `lesson_progress` (
+  `id` int NOT NULL AUTO_INCREMENT,
+  `user_id` int DEFAULT NULL,
+  `lesson_id` int DEFAULT NULL,
+  `last_watched_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP,
+  `watched_duration` int DEFAULT '0',
+  `is_completed` tinyint(1) DEFAULT '0',
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `user_id` (`user_id`,`lesson_id`),
+  KEY `idx_lesson_progress_user` (`user_id`),
+  KEY `idx_lesson_progress_lesson` (`lesson_id`),
+  CONSTRAINT `lesson_progress_ibfk_1` FOREIGN KEY (`user_id`) REFERENCES `users` (`user_id`) ON DELETE CASCADE,
+  CONSTRAINT `lesson_progress_ibfk_2` FOREIGN KEY (`lesson_id`) REFERENCES `lessons` (`lesson_id`) ON DELETE CASCADE
+) ENGINE=InnoDB AUTO_INCREMENT=14 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
 
-insert into elearning_platform.users (user_id,name,email,password_hash,role, avatar_url, created_at )
-values (1,'sherlock','sherlock@gmail.com','asdgasgasa','student','asgaggsd','2020-01-01 10:10:10 '),
-(2,'tom','tom@gmail.com','asdgasgasa','student','asgaggsdasdgag','2020-01-01 10:10:10 '),
-(3,'trump','trump@gmail.com','asdgasgasaasdaseg','student','asgaggsdasdgagasdg','2020-01-01 10:10:10 ');
-insert into elearning_platform.instructors (instructor_id, user_id, bio, expertise) values 
-(1,2,'tien sy','math');
+--
+-- Table structure for table `lessons`
+--
 
-insert into elearning_platform.categories (category_id,name) values(1,'science');
+DROP TABLE IF EXISTS `lessons`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!50503 SET character_set_client = utf8mb4 */;
+CREATE TABLE `lessons` (
+  `lesson_id` int NOT NULL AUTO_INCREMENT,
+  `course_id` int DEFAULT NULL,
+  `title` varchar(255) NOT NULL,
+  `content` text,
+  `video_url` text,
+  `position` int DEFAULT NULL,
+  `created_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (`lesson_id`),
+  KEY `idx_lessons_course` (`course_id`),
+  KEY `idx_lessons_position` (`course_id`,`position`),
+  CONSTRAINT `lessons_ibfk_1` FOREIGN KEY (`course_id`) REFERENCES `courses` (`course_id`) ON DELETE CASCADE
+) ENGINE=InnoDB AUTO_INCREMENT=11 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
 
+--
+-- Table structure for table `notifications`
+--
 
-insert into elearning_platform.courses (course_id, instructor_id, title, description, level, price, 
-    thumbnail, 
-    category_id,
-    created_at
-) values (1,1,'math','good','beginner',10.2,'sadgsad',1,'2020-01-01 10:10:10 ');
+DROP TABLE IF EXISTS `notifications`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!50503 SET character_set_client = utf8mb4 */;
+CREATE TABLE `notifications` (
+  `notification_id` int NOT NULL AUTO_INCREMENT,
+  `user_id` int DEFAULT NULL,
+  `title` text NOT NULL,
+  `message` text NOT NULL,
+  `is_read` tinyint(1) DEFAULT '0',
+  `created_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (`notification_id`),
+  KEY `idx_notifications_user` (`user_id`),
+  CONSTRAINT `notifications_ibfk_1` FOREIGN KEY (`user_id`) REFERENCES `users` (`user_id`) ON DELETE CASCADE
+) ENGINE=InnoDB AUTO_INCREMENT=8 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
 
+--
+-- Table structure for table `payments`
+--
 
-insert into elearning_platform.cart (user_id,course_id) values (2,1)
+DROP TABLE IF EXISTS `payments`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!50503 SET character_set_client = utf8mb4 */;
+CREATE TABLE `payments` (
+  `payment_id` int NOT NULL AUTO_INCREMENT,
+  `user_id` int DEFAULT NULL,
+  `course_id` int DEFAULT NULL,
+  `amount` decimal(10,2) DEFAULT NULL,
+  `payment_date` timestamp NULL DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (`payment_id`),
+  KEY `user_id` (`user_id`),
+  KEY `course_id` (`course_id`),
+  CONSTRAINT `payments_ibfk_1` FOREIGN KEY (`user_id`) REFERENCES `users` (`user_id`) ON DELETE CASCADE,
+  CONSTRAINT `payments_ibfk_2` FOREIGN KEY (`course_id`) REFERENCES `courses` (`course_id`) ON DELETE CASCADE
+) ENGINE=InnoDB AUTO_INCREMENT=10 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Table structure for table `reviews`
+--
+
+DROP TABLE IF EXISTS `reviews`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!50503 SET character_set_client = utf8mb4 */;
+CREATE TABLE `reviews` (
+  `review_id` int NOT NULL AUTO_INCREMENT,
+  `user_id` int NOT NULL,
+  `course_id` int NOT NULL,
+  `rating` int DEFAULT '5',
+  `comment` text,
+  `created_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (`review_id`),
+  KEY `user_id` (`user_id`),
+  KEY `course_id` (`course_id`),
+  CONSTRAINT `reviews_ibfk_1` FOREIGN KEY (`user_id`) REFERENCES `users` (`user_id`) ON DELETE CASCADE,
+  CONSTRAINT `reviews_ibfk_2` FOREIGN KEY (`course_id`) REFERENCES `courses` (`course_id`) ON DELETE CASCADE
+) ENGINE=InnoDB AUTO_INCREMENT=3 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Table structure for table `tags`
+--
+
+DROP TABLE IF EXISTS `tags`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!50503 SET character_set_client = utf8mb4 */;
+CREATE TABLE `tags` (
+  `tag_id` int NOT NULL AUTO_INCREMENT,
+  `name` varchar(50) NOT NULL,
+  PRIMARY KEY (`tag_id`),
+  UNIQUE KEY `name` (`name`)
+) ENGINE=InnoDB AUTO_INCREMENT=7 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Table structure for table `users`
+--
+
+DROP TABLE IF EXISTS `users`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!50503 SET character_set_client = utf8mb4 */;
+CREATE TABLE `users` (
+  `user_id` int NOT NULL AUTO_INCREMENT,
+  `name` varchar(100) NOT NULL,
+  `email` varchar(150) NOT NULL,
+  `password_hash` text NOT NULL,
+  `role` enum('student','instructor','admin') DEFAULT 'student',
+  `avatar_url` text,
+  `created_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP,
+  `avatar` varchar(255) DEFAULT NULL,
+  `bio` text,
+  PRIMARY KEY (`user_id`),
+  UNIQUE KEY `email` (`email`),
+  KEY `idx_users_email` (`email`)
+) ENGINE=InnoDB AUTO_INCREMENT=8 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Final view structure for view `course_popularity`
+--
+
+/*!50001 DROP VIEW IF EXISTS `course_popularity`*/;
+/*!50001 SET @saved_cs_client          = @@character_set_client */;
+/*!50001 SET @saved_cs_results         = @@character_set_results */;
+/*!50001 SET @saved_col_connection     = @@collation_connection */;
+/*!50001 SET character_set_client      = utf8mb4 */;
+/*!50001 SET character_set_results     = utf8mb4 */;
+/*!50001 SET collation_connection      = utf8mb4_0900_ai_ci */;
+/*!50001 CREATE ALGORITHM=UNDEFINED */
+/*!50001 VIEW `course_popularity` AS select `enrollments`.`course_id` AS `course_id`,count(0) AS `enroll_count` from `enrollments` group by `enrollments`.`course_id` */;
+/*!50001 SET character_set_client      = @saved_cs_client */;
+/*!50001 SET character_set_results     = @saved_cs_results */;
+/*!50001 SET collation_connection      = @saved_col_connection */;
+/*!40103 SET TIME_ZONE=@OLD_TIME_ZONE */;
+
+/*!40101 SET SQL_MODE=@OLD_SQL_MODE */;
+/*!40014 SET FOREIGN_KEY_CHECKS=@OLD_FOREIGN_KEY_CHECKS */;
+/*!40014 SET UNIQUE_CHECKS=@OLD_UNIQUE_CHECKS */;
+/*!40101 SET CHARACTER_SET_CLIENT=@OLD_CHARACTER_SET_CLIENT */;
+/*!40101 SET CHARACTER_SET_RESULTS=@OLD_CHARACTER_SET_RESULTS */;
+/*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
+/*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
+
+-- Dump completed on 2026-01-01 23:10:52

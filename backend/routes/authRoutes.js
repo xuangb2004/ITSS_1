@@ -1,6 +1,6 @@
 const express = require("express");
 const router = express.Router();
-// 👇 Dòng này quan trọng: Import toàn bộ object authController
+// Dòng này quan trọng: Import toàn bộ object authController
 const authController = require("../controllers/authController"); 
 
 // POST /api/auth/signup (Học viên)

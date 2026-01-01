@@ -24,12 +24,12 @@ function CartPage() {
   };
 
   const handleRemove = async (courseId) => {
-    if(!window.confirm("Xóa khỏi giỏ hàng?")) return;
+    if(!window.confirm("カートから削除しますか?")) return;
     try {
       await cartService.removeFromCart(courseId);
       setCartItems(prev => prev.filter(item => item.course_id !== courseId));
     } catch (err) {
-      alert("Lỗi xóa");
+      alert("エラーが発生しました");
     }
   };
 
@@ -42,16 +42,16 @@ function CartPage() {
       for (const item of cartItems) {
         await enrollmentService.enroll(item.course_id);
       }
-      alert("Thanh toán thành công!");
+      alert("購入が成功しました！");
       navigate('/my-courses');
     } catch (err) {
-      alert("Lỗi thanh toán");
+      alert("購入に失敗しました");
     }
   };
 
   const totalPrice = cartItems.reduce((sum, item) => sum + Number(item.price), 0);
 
-  if (loading) return <div style={{padding: '40px', textAlign: 'center'}}>Đang tải giỏ hàng...</div>;
+  if (loading) return <div style={{padding: '40px', textAlign: 'center'}}>カートを読み込み中...</div>;
 
   return (
     <div style={{maxWidth: '1000px', margin: '40px auto', padding: '0 20px'}}>
