@@ -1,21 +1,35 @@
-import { useNavigate } from 'react-router-dom'; // 1. BẮT BUỘC IMPORT
+import { useNavigate } from 'react-router-dom';
 
 function CourseCard({ course }) {
   const navigate = useNavigate();
 
+  // 1. ĐỊNH NGHĨA LINK BACKEND (Thay đúng link Render của bạn vào đây)
+  const API_BASE_URL = "https://itss-1-pz9y.onrender.com";
+
   const handleClick = () => {
-    // Dùng course.course_id nếu lấy từ API thật, hoặc course.id nếu mock
     const id = course.course_id || course.id; 
     navigate(`/course/${id}`);
   };
 
   const isFree = Number(course.price) === 0;
-
-  // 2. Lấy dữ liệu động (Nếu chưa có trong DB thì mặc định là 0 hoặc 5)
   const rating = Number(course.average_rating) || 5; 
   const reviewCount = Number(course.review_count) || 0;
 
-  // Hàm render sao động
+  // 2. HÀM XỬ LÝ ẢNH THÔNG MINH (Mới thêm)
+  const getImageUrl = (thumbnailPath) => {
+    // Nếu không có dữ liệu ảnh -> Trả về ảnh giữ chỗ
+    if (!thumbnailPath) return "https://placehold.co/300x170?text=No+Image";
+
+    // Nếu là link ảnh online (VD: https://imgur.com/...) -> Giữ nguyên
+    if (thumbnailPath.startsWith("http")) return thumbnailPath;
+
+    // Nếu là đường dẫn từ server (VD: /uploads/abc.jpg) -> Ghép link Backend vào
+    // Kiểm tra xem có dấu gạch chéo đầu chưa để ghép cho đúng
+    const cleanPath = thumbnailPath.startsWith("/") ? thumbnailPath : `/${thumbnailPath}`;
+    
+    return `${API_BASE_URL}${cleanPath}`;
+  };
+
   const renderStars = (score) => {
     const stars = [];
     for (let i = 1; i <= 5; i++) {
@@ -33,16 +47,21 @@ function CourseCard({ course }) {
   return (
     <div className="course-card" onClick={handleClick}>
       <img 
-        src={course.thumbnail || "https://placehold.co/300x170?text=No+Image"} 
+        // 3. GỌI HÀM XỬ LÝ ẢNH Ở ĐÂY
+        src={getImageUrl(course.thumbnail)} 
         alt={course.title} 
         className="course-image"
-        onError={(e) => {e.target.onerror = null; e.target.src="https://placehold.co/300x170?text=No+Image"}} 
+        // Thêm chút style để ảnh không bị méo
+        style={{ width: '100%', height: '170px', objectFit: 'cover' }}
+        onError={(e) => {
+            e.target.onerror = null; 
+            e.target.src="https://placehold.co/300x170?text=No+Image";
+        }} 
       />
       <div className="course-content">
         <h3 className="course-title">{course.title}</h3>
         <p className="course-instructor">{course.instructor_name || "Unknown Instructor"}</p>
         
-        {/* 3. Phần đánh giá động */}
         <div className="course-rating">
           <span className="rating-score">{rating.toFixed(1)}</span>
           <div className="stars">
