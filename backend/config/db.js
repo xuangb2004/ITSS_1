@@ -1,4 +1,4 @@
-const mysql = require("mysql2/promise");
+const mysql = require("mysql2"); // Đảm bảo bạn đang dùng mysql2
 require("dotenv").config();
 
 const pool = mysql.createPool({
@@ -7,26 +7,25 @@ const pool = mysql.createPool({
   password: process.env.DB_PASSWORD,
   database: process.env.DB_NAME,
   port: process.env.DB_PORT || 3306,
-
-  // ⭐ FIX LỖI AUTH PLUGIN
-  authPlugins: {
-    mysql_native_password: () => () => Buffer.from(process.env.DB_PASSWORD)
-  },
-
   waitForConnections: true,
   connectionLimit: 10,
-  queueLimit: 0
+  queueLimit: 0,
+  authPlugins: {
+    mysql_clear_password: () => () => Buffer.from(process.env.DB_PASSWORD + '\0')
+  }
 });
 
-// Test kết nối
-(async () => {
-  try {
-    const conn = await pool.getConnection();
-    console.log("✅ MySQL connected successfully to", process.env.DB_NAME);
-    conn.release();
-  } catch (err) {
-    console.error("❌ MySQL connection failed:", err.message);
-  }
-})();
+// Chuyển pool thành promise để dùng async/await
+const promisePool = pool.promise();
 
-module.exports = pool;
+// Test kết nối khi khởi động
+pool.getConnection((err, connection) => {
+  if (err) {
+    console.error("❌ Lỗi kết nối Database:", err.message);
+  } else {
+    console.log("✅ Đã kết nối Database thành công!");
+    connection.release();
+  }
+});
+
+module.exports = promisePool;
