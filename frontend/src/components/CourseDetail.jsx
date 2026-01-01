@@ -4,6 +4,9 @@ import { courseService, cartService, enrollmentService } from '../services/api';
 import { useAuth } from '../context/AuthContext';
 import './css/CourseDetail.css';
 
+// 1. ĐỊNH NGHĨA LINK BACKEND
+const API_BASE_URL = "https://itss-1-pz9y.onrender.com";
+
 const getYouTubeId = (url) => {
     if (!url) return null;
     const regExp = /^.*(youtu.be\/|v\/|u\/\w\/|embed\/|watch\?v=|&v=)([^#&?]*).*/;
@@ -11,10 +14,17 @@ const getYouTubeId = (url) => {
     return (match && match[2].length === 11) ? match[2] : null;
 };
 
+// 2. HÀM XỬ LÝ ẢNH (Đã sửa)
 const getImageUrl = (path) => {
+    // Nếu không có ảnh -> Trả về ảnh mặc định
     if (!path) return "https://placehold.co/400x200?text=No+Image";
+    
+    // Nếu là link online (http/https) -> Giữ nguyên
     if (path.startsWith('http')) return path;
-    return path; 
+
+    // Nếu là đường dẫn file (/uploads/...) -> Ghép link Backend vào
+    const cleanPath = path.startsWith('/') ? path : `/${path}`;
+    return `${API_BASE_URL}${cleanPath}`;
 };
 
 function CourseDetail() {
@@ -159,7 +169,13 @@ function CourseDetail() {
                  </>
              ) : (
                  <div style={{ position: 'relative', borderRadius: '8px', overflow: 'hidden', border: '1px solid #ddd' }}>
-                     <img src={getImageUrl(course.thumbnail)} alt="Preview" style={{ width: '100%', filter: 'brightness(0.7)' }} onError={(e) => { e.target.onerror = null; e.target.src="https://placehold.co/800x450?text=Preview" }} />
+                     {/* 3. ẢNH PREVIEW (Đã áp dụng getImageUrl) */}
+                     <img 
+                        src={getImageUrl(course.thumbnail)} 
+                        alt="Preview" 
+                        style={{ width: '100%', filter: 'brightness(0.7)' }} 
+                        onError={(e) => { e.target.onerror = null; e.target.src="https://placehold.co/800x450?text=Preview" }} 
+                     />
                      <div style={{ position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%, -50%)', textAlign: 'center', color: 'white' }}>
                          <i className="fa-solid fa-lock" style={{ fontSize: '30px', marginBottom:'10px' }}></i>
                          <h3>このコースはまだロック解除されていません。</h3>
@@ -171,7 +187,13 @@ function CourseDetail() {
 
         <div className="hero-right" style={{ width: '350px', flexShrink: 0 }}>
           <div className="course-card-sidebar" style={{ background: 'white', padding: '20px', borderRadius: '12px', boxShadow: '0 4px 12px rgba(0,0,0,0.1)' }}>
-            <img src={getImageUrl(course.thumbnail)} alt={course.title} style={{ width: '100%', borderRadius: '8px', marginBottom: '15px', aspectRatio: '16/9', objectFit: 'cover' }} onError={(e) => { e.target.onerror = null; e.target.src="https://placehold.co/400x200?text=No+Image" }} />
+            {/* 4. ẢNH SIDEBAR (Đã áp dụng getImageUrl) */}
+            <img 
+                src={getImageUrl(course.thumbnail)} 
+                alt={course.title} 
+                style={{ width: '100%', borderRadius: '8px', marginBottom: '15px', aspectRatio: '16/9', objectFit: 'cover' }} 
+                onError={(e) => { e.target.onerror = null; e.target.src="https://placehold.co/400x200?text=No+Image" }} 
+            />
             {isEnrolled ? (
                  <div style={{ textAlign: 'center', padding: '20px 0' }}>
                      <div style={{ fontSize: '40px', color: '#10b981', marginBottom: '10px' }}><i className="fa-solid fa-circle-check"></i></div>
