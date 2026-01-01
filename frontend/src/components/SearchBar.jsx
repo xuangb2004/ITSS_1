@@ -1,6 +1,9 @@
 import { useState, useEffect, useRef } from "react";
 import "./css/SearchBar.css";
 
+// バックエンドAPIのURL（環境変数 or localhost）
+const API_BASE = import.meta.env.VITE_API_URL || "http://localhost:5001/api";
+
 export default function SearchBar() {
     const [query, setQuery] = useState("");
     const [results, setResults] = useState([]);
@@ -11,19 +14,16 @@ export default function SearchBar() {
     const debounceRef = useRef(null);
     const abortRef = useRef(null);
 
-    // sanitize: giữ letters, numbers, whitespace; loại bỏ ký tự đặc biệt
+    // 特殊文字を除去（日本語対応）
     const sanitize = (s) => {
         try {
-            // Unicode property escapes: giữ letters (\p{L}), numbers (\p{N}), and whitespace
             return s.trim().replace(/[^\p{L}\p{N}\s]/gu, "");
         } catch (e) {
-            // Fallback nếu trình duyệt không hỗ trợ \p{...}
             return s.trim().replace(/[!@#$%^&*()+=[\]{};:'"\\|,<.>/?~`]/g, "");
         }
     };
 
     useEffect(() => {
-        // hide dropdown when input empty
         if (query.trim() === "") {
             clearPending();
             setResults([]);
@@ -32,7 +32,6 @@ export default function SearchBar() {
             return;
         }
 
-        // debounce 300ms
         clearTimeout(debounceRef.current);
         debounceRef.current = setTimeout(() => {
             const cleaned = sanitize(query);
@@ -59,7 +58,6 @@ export default function SearchBar() {
     };
 
     const fetchResults = async (cleanedQuery) => {
-        // cancel previous
         if (abortRef.current) {
             abortRef.current.abort();
         }
@@ -69,34 +67,23 @@ export default function SearchBar() {
         setLoading(true);
         setError("");
 
-        const start = performance.now();
-
         try {
-            // call API (backend supports ?sort if needed); limit applied client-side
-            const res = await fetch(`/api/search?q=${encodeURIComponent(cleanedQuery)}`, {
-                signal: controller.signal,
-            });
-
-            const duration = performance.now() - start;
-            // optional: you can log duration for perf tuning
-            // console.log("search took", duration, "ms");
+            const res = await fetch(
+                `${API_BASE}/search?q=${encodeURIComponent(cleanedQuery)}`,
+                { signal: controller.signal }
+            );
 
             if (!res.ok) {
                 throw new Error(`HTTP ${res.status}`);
             }
 
             const data = await res.json();
-            const items = (data.results || []).slice(0, 10); // max 10 suggestions
+            const items = (data.results || []).slice(0, 10);
             setResults(items);
             setShowDropdown(true);
-            setError("");
         } catch (err) {
-            if (err.name === "AbortError") {
-                // aborted - ignore
-                return;
-            }
+            if (err.name === "AbortError") return;
             console.error("Search error:", err);
-            setError("サーバーエラーが発生しました。再試行してください。");
             setShowDropdown(true);
         } finally {
             setLoading(false);
@@ -118,14 +105,10 @@ export default function SearchBar() {
     };
 
     const onSelect = (item) => {
-        // default behavior: navigate to course detail if you have a route,
-        // otherwise just fill input and close dropdown
         setQuery(item.title);
         setShowDropdown(false);
-        // e.g., navigate(`/courses/${item.course_id}`) if router is available
     };
 
-    // handle click outside to close dropdown - attach on document
     useEffect(() => {
         const onDocClick = (e) => {
             const root = document.querySelector(".search-container");
@@ -143,11 +126,10 @@ export default function SearchBar() {
             <div className="search-input-wrap">
                 <input
                     type="text"
-                    placeholder="コースを探す..."
+                    placeholder="コースを検索..."
                     value={query}
                     onChange={(e) => setQuery(e.target.value)}
                     className="search-input"
-                    aria-label="Search courses"
                     onFocus={() => {
                         if (results.length > 0) setShowDropdown(true);
                     }}
@@ -156,7 +138,6 @@ export default function SearchBar() {
                     type="button"
                     className="search-icon-btn"
                     onClick={query ? handleClear : () => {}}
-                    aria-label={query ? "Clear search" : "Search"}
                 >
                     {query ? (
                         <span className="icon-clear">✕</span>
@@ -167,18 +148,24 @@ export default function SearchBar() {
             </div>
 
             {showDropdown && (
-                <div className="search-results" role="listbox" aria-live="polite">
-                    {loading && <div className="loading">読み込み中...</div>}
+                <div className="search-results">
+                    {loading && (
+                        <div className="loading">検索中...</div>
+                    )}
 
                     {error && (
                         <div className="error">
                             {error}
-                            <button className="retry-btn" onClick={handleRetry}>再試行</button>
+                            <button className="retry-btn" onClick={handleRetry}>
+                                再試行
+                            </button>
                         </div>
                     )}
 
                     {!loading && !error && results.length === 0 && (
-                        <div className="no-result">一致するコースが見つかりません</div>
+                        <div className="no-result">
+                            検索結果が見つかりません
+                        </div>
                     )}
 
                     {!loading && !error && results.length > 0 && (
@@ -187,28 +174,23 @@ export default function SearchBar() {
                                 <div
                                     key={item.course_id}
                                     className="item"
-                                    role="option"
                                     onClick={() => onSelect(item)}
-                                    tabIndex={0}
-                                    onKeyDown={(e) => {
-                                        if (e.key === "Enter") onSelect(item);
-                                    }}
                                 >
                                     <img
-                                        src={item.thumbnail || "/placeholder.png"}
+                                        src={item.thumbnail || "https://placehold.co/50"}
                                         alt={item.title}
                                         className="thumb"
+                                        onError={(e) => {
+                                            e.target.onerror = null;
+                                            e.target.src = "https://placehold.co/50";
+                                        }}
                                     />
                                     <div className="info">
                                         <b>{item.title}</b>
                                         <div className="meta">
-                                            <span className="instructor">講師: {item.instructor_name || "-"}</span>
-                                            <span className="category">トピック: {item.category_name || "-"}</span>
-                                        </div>
-                                        <div className="tags">
-                                            {item.tags?.map((t) => (
-                                                <span key={t} className="tag">{t}</span>
-                                            ))}
+                                            <span className="instructor">
+                                                講師: {item.instructor_name || "-"}
+                                            </span>
                                         </div>
                                     </div>
                                 </div>
