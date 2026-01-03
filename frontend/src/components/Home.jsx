@@ -97,7 +97,7 @@ function Home() {
     // Filter recommended courses
     if (categoryToFilter === null) {
       setFilteredRecommended(recommendedCourses)
-    } else if (categoryToFilter === 'Adobe Illustrator' || categoryToFilter === 'Adobe Photoshop') {
+    } else if (categoryToFilter === 'design' || categoryToFilter === 'design') {
       setFilteredRecommended(
         recommendedCourses.filter(course =>
           course.tags && course.tags.some(tag => tag.includes(categoryToFilter))
@@ -112,7 +112,7 @@ function Home() {
     // Filter trending courses
     if (categoryToFilter === null) {
       setFilteredTrending(trendingCourses)
-    } else if (categoryToFilter === 'Adobe Illustrator' || categoryToFilter === 'Adobe Photoshop') {
+    } else if (categoryToFilter === 'design' || categoryToFilter === 'design') {
       setFilteredTrending(
         trendingCourses.filter(course =>
           course.tags && course.tags.some(tag => tag.includes(categoryToFilter))
