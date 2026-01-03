@@ -172,7 +172,7 @@ function Home() {
         {selectedCategory === 'all' && trendingCourses.length > 0 && (
           <section className="courses-section">
             <div className="section-header">
-              <h2>トレンドのコース (Xu hướng)</h2>
+              <h2>トレンドのコース </h2>
               <p>コミュニティで最も人気のあるコースです。</p>
             </div>
             <div className="courses-grid">
@@ -188,8 +188,8 @@ function Home() {
           <div className="section-header">
             <h2>
                 {selectedCategory === 'all' 
-                    ? "おすすめのコース (Gợi ý cho bạn)" 
-                    : "検索結果 (Kết quả lọc)"}
+                    ? "おすすめのコース " 
+                    : "検索結果 "}
             </h2>
           </div>
           
