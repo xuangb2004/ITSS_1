@@ -84,7 +84,7 @@ function Home() {
     const categoryMap = {
       'すべてのおすすめ': null,
       'View All': null,
-      'Adobe Illustrator': 'Adobe Illustrator',
+      'design': 'design',
       'Adobe Photoshop': 'Adobe Photoshop',
       'デザイン': 'デザイン',
       'Webプログラミング': 'Webプログラミング',
