@@ -16,25 +16,42 @@ const calculateCourseProgress = async (userId, courseId) => {
 };
 
 // --- 1. Lấy tất cả khóa học ---
+// backend/controllers/courseController.js
+
 exports.getAllCourses = async (req, res) => {
   try {
-    const sql = `
-      SELECT c.*, u.name as instructor_name, cat.name as category_name,
-             CAST(COALESCE(AVG(r.rating), 0) AS DECIMAL(2,1)) as average_rating,
-             COUNT(r.review_id) as review_count
-      FROM courses c
-      LEFT JOIN instructors i ON c.instructor_id = i.instructor_id
-      LEFT JOIN users u ON i.user_id = u.user_id
+    // 1. Nhận tham số từ Frontend gửi lên
+    const { category_id } = req.query; 
+
+    // 2. Câu SQL cơ bản (Lấy tất cả)
+    let sql = `
+      SELECT c.*, u.name as instructor_name, cat.name as category_name 
+      FROM courses c 
+      LEFT JOIN users u ON c.instructor_id = u.user_id 
       LEFT JOIN categories cat ON c.category_id = cat.category_id
-      LEFT JOIN reviews r ON c.course_id = r.course_id
-      GROUP BY c.course_id
-      ORDER BY c.created_at DESC
     `;
-    const [courses] = await db.query(sql);
-    res.json({ courses });
-  } catch (err) {
-    console.error(err);
-    res.status(500).json({ message: "Lỗi server" });
+    
+    const params = [];
+
+    // 3. LOGIC LỌC: Nếu có category_id thì thêm WHERE
+    if (category_id && category_id !== 'all') {
+      sql += ` WHERE c.category_id = ?`; // <--- DÒNG NÀY QUAN TRỌNG
+      params.push(category_id);
+    }
+
+    // 4. Sắp xếp mới nhất
+    sql += ` ORDER BY c.created_at DESC`;
+
+    const [courses] = await db.query(sql, params);
+
+    res.status(200).json({
+      success: true,
+      count: courses.length,
+      courses,
+    });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ success: false, message: "Lỗi Server" });
   }
 };
 
