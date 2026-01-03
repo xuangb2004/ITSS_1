@@ -2,77 +2,51 @@ import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
 import NotificationDropdown from './NotificationDropdown' 
-import { courseService, categoryService } from '../services/api' // Import API thật
+import { courseService, categoryService } from '../services/api' 
 import SignUpModal from './SignUpModal'
 import SignInModal from './SignInModal'
 import CourseCard from './CourseCard'
 import SearchBar from './SearchBar'
-import InstructorSignUpModal from './InstructorSignUpModal' // <--- Import Modal Giảng viên
-import PublishedCourses from './PublishedCourses';
+import InstructorSignUpModal from './InstructorSignUpModal' 
 
 function Home() {
   const navigate = useNavigate()
-  
-  // States cho Modals
-  const [showSignUp, setShowSignUp] = useState(false)
-  const [showSignIn, setShowSignIn] = useState(false)
-  const [showInstructorSignUp, setShowInstructorSignUp] = useState(false) // <--- State mới cho modal giảng viên
-
-  // States dữ liệu
-  const [searchQuery, setSearchQuery] = useState('')
-  const [selectedCategory, setSelectedCategory] = useState('すべてのおすすめ')
-  const [recommendedCourses, setRecommendedCourses] = useState([])
-  const [trendingCourses, setTrendingCourses] = useState([])
-  const [filteredRecommended, setFilteredRecommended] = useState([])
-  const [filteredTrending, setFilteredTrending] = useState([])
-  const [categories, setCategories] = useState([])
-  const [loading, setLoading] = useState(true)
-  
   const { user, signout } = useAuth()
   
-  const handleSignOut = () => {
-    signout()
-    navigate('/')
-    window.location.reload()
-  }
+  // --- STATES ---
+  // Modals
+  const [showSignUp, setShowSignUp] = useState(false)
+  const [showSignIn, setShowSignIn] = useState(false)
+  const [showInstructorSignUp, setShowInstructorSignUp] = useState(false)
 
-  // Hàm xử lý khi bấm nút "Trở thành giảng viên"
-  const handleBecomeInstructorClick = (e) => {
-    e.preventDefault();
-    if (user) {
-      if (user.role === 'instructor') {
-        alert("Bạn đã là giảng viên rồi!");
-        navigate('/dashboard');
-      } else {
-        alert("Bạn đang đăng nhập với tài khoản học viên. Hãy đăng ký tài khoản giảng viên mới hoặc liên hệ admin.");
-      }
-    } else {
-      // Chưa đăng nhập -> Mở modal đăng ký giảng viên
-      setShowInstructorSignUp(true);
-    }
-  };
+  // Dữ liệu
+  const [categories, setCategories] = useState([]) // Danh sách danh mục từ DB
+  const [courses, setCourses] = useState([])       // Danh sách khóa học chính
+  const [trendingCourses, setTrendingCourses] = useState([]) // Khóa học nổi bật
+  const [selectedCategory, setSelectedCategory] = useState('all') // 'all' hoặc ID danh mục
+  const [loading, setLoading] = useState(true)
 
+  // --- EFFECTS ---
   useEffect(() => {
-    loadData()
+    loadInitialData()
   }, [])
 
-  // Filter courses khi selectedCategory thay đổi
-  useEffect(() => {
-    filterCoursesByCategory()
-  }, [selectedCategory, recommendedCourses, trendingCourses])
-
-  const loadData = async () => {
+  // --- LOGIC TẢI DỮ LIỆU ---
+  const loadInitialData = async () => {
     try {
       setLoading(true)
-      const [recommended, trending, categoriesData] = await Promise.all([
-        courseService.getRecommendedCourses(100), 
-        courseService.getTrendingCourses(100), 
-        categoryService.getAllCategories()
+      // 1. Gọi song song: Lấy Danh mục + Khóa học nổi bật + Tất cả khóa học (mặc định)
+      const [catData, trendingData, allCoursesData] = await Promise.all([
+        categoryService.getAllCategories(),
+        courseService.getTrendingCourses(4), // Lấy 4 bài top trending
+        courseService.getAllCourses('all')   // Lấy danh sách mặc định
       ])
       
-      setRecommendedCourses(recommended.courses || [])
-      setTrendingCourses(trending.courses || [])
-      setCategories(categoriesData.categories || [])
+      // Cập nhật State (Tùy theo cấu trúc trả về của API mà .categories hoặc lấy trực tiếp)
+      setCategories(catData.categories || catData || [])
+      setTrendingCourses(trendingData.courses || trendingData || [])
+      setCourses(allCoursesData.courses || allCoursesData || [])
+
     } catch (error) {
       console.error('Error loading data:', error)
     } finally {
@@ -80,92 +54,57 @@ function Home() {
     }
   }
 
-  const filterCoursesByCategory = () => {
-    const categoryMap = {
-      'すべてのおすすめ': null,
-      'View All': null,
-      'design': 'design',
-      'Adobe Photoshop': 'Adobe Photoshop',
-      'デザイン': 'デザイン',
-      'Webプログラミング': 'Webプログラミング',
-      'モバイルプログラミング': 'モバイルプログラミング',
-      'バックエンド開発': 'バックエンド開発',
+  // --- LOGIC LỌC DANH MỤC ---
+  const handleCategoryClick = async (categoryId) => {
+    setSelectedCategory(categoryId);
+    setLoading(true);
+    try {
+        // Nếu chọn 'all' -> Gọi API lấy tất cả, ngược lại gọi theo ID
+        const data = await courseService.getAllCourses(categoryId);
+        setCourses(data.courses || []);
+    } catch (error) {
+        console.error("Lỗi lọc khóa học:", error);
+    } finally {
+        setLoading(false);
     }
+  };
 
-    const categoryToFilter = categoryMap[selectedCategory]
-
-    // Filter recommended courses
-    if (categoryToFilter === null) {
-      setFilteredRecommended(recommendedCourses)
-    } else if (categoryToFilter === 'design' || categoryToFilter === 'design') {
-      setFilteredRecommended(
-        recommendedCourses.filter(course =>
-          course.tags && course.tags.some(tag => tag.includes(categoryToFilter))
-        )
-      )
+  // --- LOGIC KHÁC ---
+  const handleBecomeInstructorClick = (e) => {
+    e.preventDefault();
+    if (user) {
+      if (user.role === 'instructor') {
+        alert("Bạn đã là giảng viên rồi!");
+        navigate('/dashboard');
+      } else {
+        alert("Bạn đang đăng nhập với tài khoản học viên. Hãy đăng ký tài khoản giảng viên mới.");
+      }
     } else {
-      setFilteredRecommended(
-        recommendedCourses.filter(course => course.category === categoryToFilter)
-      )
+      setShowInstructorSignUp(true);
     }
-
-    // Filter trending courses
-    if (categoryToFilter === null) {
-      setFilteredTrending(trendingCourses)
-    } else if (categoryToFilter === 'design' || categoryToFilter === 'design') {
-      setFilteredTrending(
-        trendingCourses.filter(course =>
-          course.tags && course.tags.some(tag => tag.includes(categoryToFilter))
-        )
-      )
-    } else {
-      setFilteredTrending(
-        trendingCourses.filter(course => course.category === categoryToFilter)
-      )
-    }
-  }
-
-  const categoryFilters = [
-    'すべてのおすすめ',
-    'Adobe Illustrator',
-    'Adobe Photoshop',
-    'デザイン',
-    'Webプログラミング',
-    'モバイルプログラミング',
-    'バックエンド開発',
-    'View All'
-  ]
+  };
 
   return (
     <div className="home-wrapper">
+      {/* --- HEADER --- */}
       <header className="navbar">
         <div className="navbar-content">
-          <div 
-            className="logo" 
-            onClick={() => navigate('/')} 
-            style={{ cursor: 'pointer' }}
-          >
+          <div className="logo" onClick={() => navigate('/')} style={{ cursor: 'pointer' }}>
             <i className="fa-solid fa-leaf"></i>
             <span>MyCourse.io</span>
           </div>
-        
-
           
           <SearchBar />
 
           <div className="nav-actions">
-            {/* NÚT ĐĂNG KÝ GIẢNG VIÊN ĐÃ ĐƯỢC GẮN SỰ KIỆN */}
             <button className="nav-btn" onClick={handleBecomeInstructorClick}>
               インストラクターになる
             </button>
             
-            <button 
-              className="nav-icon" 
-              onClick={() => navigate('/forum')}
-              title="フォーラム"
-            >
+            <button className="nav-icon" onClick={() => navigate('/forum')} title="フォーラム">
               <i className="fa-solid fa-comments"></i>
             </button>
+
             {user ? (
               <>
                 <div className="nav-icon-wrapper">
@@ -173,56 +112,33 @@ function Home() {
                     <i className="fa-solid fa-cart-shopping"></i>
                   </button>
                 </div>
-                
                 <NotificationDropdown />
-                
                 <div className="user-avatar-wrapper">
                   <button className="user-avatar" onClick={() => navigate('/dashboard')}>
-                    {user.name ? (
-                      <div className="avatar-initials">
-                        {user.name.charAt(0).toUpperCase()}
-                      </div>
-                    ) : (
-                      <i className="fa-solid fa-user"></i>
-                    )}
+                    {user.name ? <div className="avatar-initials">{user.name.charAt(0).toUpperCase()}</div> : <i className="fa-solid fa-user"></i>}
                   </button>
                 </div>
               </>
             ) : (
               <>
-                <button className="nav-btn btn-login" onClick={() => setShowSignIn(true)}>
-                  ログイン
-                </button>
-                <button className="nav-btn btn-signup" onClick={() => setShowSignUp(true)}>
-                  新規登録
-                </button>
+                <button className="nav-btn btn-login" onClick={() => setShowSignIn(true)}>ログイン</button>
+                <button className="nav-btn btn-signup" onClick={() => setShowSignUp(true)}>新規登録</button>
               </>
             )}
           </div>
         </div>
       </header>
 
+      {/* --- MAIN CONTENT --- */}
       <main className="home-main">
+        {/* HERO SECTION */}
         <div className="hero-section">
           <div className="hero-images">
-            <div className="hero-image-item">
-              <img src="https://images.unsplash.com/photo-1522202176988-66273c2fd55f?w=300" alt="Learning" />
-            </div>
-            <div className="hero-image-item">
-              <img src="https://images.unsplash.com/photo-1516321318423-f06f85e504b3?w=300" alt="Workspace" />
-            </div>
-            <div className="hero-image-item">
-              <img src="https://images.unsplash.com/photo-1485846234645-a62644f84728?w=300" alt="Film" />
-            </div>
-            <div className="hero-image-item">
-              <img src="https://images.unsplash.com/photo-1454165804606-c3d57bc86b40?w=300" alt="Business" />
-            </div>
-            <div className="hero-image-item">
-              <img src="https://images.unsplash.com/photo-1522071820081-009f0129c71c?w=300" alt="Team" />
-            </div>
-            <div className="hero-image-item">
-              <img src="https://images.unsplash.com/photo-1509228468518-180dd4864904?w=300" alt="Writing" />
-            </div>
+             {/* Giữ nguyên ảnh static hoặc thay bằng ảnh động nếu muốn */}
+             <div className="hero-image-item"><img src="https://images.unsplash.com/photo-1522202176988-66273c2fd55f?w=300" alt="Learning" /></div>
+             <div className="hero-image-item"><img src="https://images.unsplash.com/photo-1516321318423-f06f85e504b3?w=300" alt="Workspace" /></div>
+             <div className="hero-image-item"><img src="https://images.unsplash.com/photo-1485846234645-a62644f84728?w=300" alt="Film" /></div>
+             <div className="hero-image-item"><img src="https://images.unsplash.com/photo-1454165804606-c3d57bc86b40?w=300" alt="Business" /></div>
           </div>
           <div className="hero-content">
             <h1>毎日新しいことを学ぼう。</h1>
@@ -230,96 +146,76 @@ function Home() {
           </div>
         </div>
 
+        {/* CATEGORY TABS (ĐỘNG) */}
         <div className="category-filters">
-          {categoryFilters.map((category) => (
+          {/* Nút All */}
+          <button
+            className={`filter-btn ${selectedCategory === 'all' ? 'active' : ''}`}
+            onClick={() => handleCategoryClick('all')}
+          >
+            すべて (Tất cả)
+          </button>
+
+          {/* Render danh mục từ DB */}
+          {categories.map((cat) => (
             <button
-              key={category}
-              className={`filter-btn ${selectedCategory === category ? 'active' : ''}`}
-              onClick={() => {
-                setSelectedCategory(category)
-              }}
+              key={cat.category_id}
+              className={`filter-btn ${selectedCategory === cat.category_id ? 'active' : ''}`}
+              onClick={() => handleCategoryClick(cat.category_id)}
             >
-              {category}
+              {cat.name}
             </button>
           ))}
         </div>
 
-        <section className="courses-section">
-          <div className="section-header">
-            <h2>あなたの興味に基づいたおすすめ</h2>
-            <p>あなたにぴったりのコンテンツ、おすすめのトップピックです。</p>
-          </div>
-          {loading ? (
-            <div className="loading">読み込み中...</div>
-          ) : (
-            <div className="courses-grid">
-              {filteredRecommended.length > 0 ? (
-                filteredRecommended.map((course) => (
-                  <CourseCard key={course.course_id || course._id} course={course} />
-                ))
-              ) : (
-                <p className="no-courses">おすすめのコースがありません</p>
-              )}
+        {/* TRENDING SECTION (Chỉ hiện khi đang ở tab All) */}
+        {selectedCategory === 'all' && trendingCourses.length > 0 && (
+          <section className="courses-section">
+            <div className="section-header">
+              <h2>トレンドのコース (Xu hướng)</h2>
+              <p>コミュニティで最も人気のあるコースです。</p>
             </div>
-          )}
-        </section>
+            <div className="courses-grid">
+               {trendingCourses.map((course) => (
+                  <CourseCard key={course.course_id} course={course} />
+               ))}
+            </div>
+          </section>
+        )}
 
+        {/* MAIN COURSES LIST (Thay đổi theo filter) */}
         <section className="courses-section">
           <div className="section-header">
-            <h2>トレンドのコース</h2>
-            <p>あなたにぴったりのコンテンツ、おすすめのトップピックです。</p>
+            <h2>
+                {selectedCategory === 'all' 
+                    ? "おすすめのコース (Gợi ý cho bạn)" 
+                    : "検索結果 (Kết quả lọc)"}
+            </h2>
           </div>
+          
           {loading ? (
-            <div className="loading">読み込み中...</div>
+            <div className="loading" style={{textAlign:'center', padding:'40px'}}>読み込み中...</div>
           ) : (
             <div className="courses-grid">
-              {filteredTrending.length > 0 ? (
-                filteredTrending.map((course) => (
-                  <CourseCard key={course.course_id || course._id} course={course} />
+              {courses.length > 0 ? (
+                courses.map((course) => (
+                  // CourseCard đã sửa ở bước trước sẽ tự xử lý ảnh
+                  <CourseCard key={course.course_id} course={course} />
                 ))
               ) : (
-                <p className="no-courses">トレンドのコースがありません</p>
+                <p className="no-courses" style={{textAlign:'center', gridColumn:'1/-1', color:'#666'}}>
+                    このカテゴリにはまだコースがありません。(Chưa có khóa học nào)
+                </p>
               )}
             </div>
           )}
         </section>
       </main>
 
-      {/* --- CÁC MODALS --- */}
-      
-      {showSignUp && (
-        <SignUpModal 
-          isOpen={showSignUp} // Đảm bảo truyền đúng prop isOpen
-          onClose={() => setShowSignUp(false)}
-          onSwitchToSignIn={() => {
-            setShowSignUp(false)
-            setShowSignIn(true)
-          }}
-        />
-      )}
-
-      {showSignIn && (
-        <SignInModal 
-          isOpen={showSignIn} // Đảm bảo truyền đúng prop isOpen
-          onClose={() => setShowSignIn(false)}
-          onSwitchToSignUp={() => {
-            setShowSignIn(false)
-            setShowSignUp(true)
-          }}
-        />
-      )}
-
-      {/* MODAL ĐĂNG KÝ GIẢNG VIÊN */}
-      {showInstructorSignUp && (
-        <InstructorSignUpModal
-          isOpen={showInstructorSignUp}
-          onClose={() => setShowInstructorSignUp(false)}
-          onSwitchToSignIn={() => {
-            setShowInstructorSignUp(false)
-            setShowSignIn(true)
-          }}
-        />
-      )}
+      {/* --- MODALS --- */}
+      {showSignUp && <SignUpModal isOpen={showSignUp} onClose={() => setShowSignUp(false)} onSwitchToSignIn={() => { setShowSignUp(false); setShowSignIn(true); }} />}
+      {showSignIn && <SignInModal isOpen={showSignIn} onClose={() => setShowSignIn(false)} onSwitchToSignUp={() => { setShowSignIn(false); setShowSignUp(true); }} />}
+      {showInstructorSignUp && <InstructorSignUpModal isOpen={showInstructorSignUp} onClose={() => setShowInstructorSignUp(false)} onSwitchToSignIn={() => { setShowInstructorSignUp(false); setShowSignIn(true); }} />}
     </div>
   )
 }

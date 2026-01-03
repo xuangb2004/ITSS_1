@@ -139,6 +139,18 @@ export const courseService = {
     const response = await api.post(`/courses/${courseId}/reviews`, data);
     return response.data;
   },
+  getAllCourses: async (categoryId = null) => {
+    // Nếu có categoryId thì gửi kèm, nếu không thì thôi
+    const url = categoryId && categoryId !== 'all' 
+      ? `/courses?category_id=${categoryId}` 
+      : '/courses';
+    const response = await api.get(url);
+    return response.data;
+  },
+  getAllCategories: async () => {
+    const response = await api.get('/categories');
+    return response.data;
+  },
   createCourse: async (formData) => {
     // Gửi FormData (bao gồm file và text)
     const response = await api.post('/courses', formData, {
