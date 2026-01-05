@@ -108,8 +108,9 @@ export const courseService = {
     return response.data;
   },
   searchCourses: async (query) => {
-    const response = await api.get(`/courses/search?search=${query}`);
-    return response.data; 
+    // Ví dụ: /courses/search?q=React
+    const response = await api.get(`/courses/search?q=${encodeURIComponent(query)}`);
+    return response.data;
   },
   getCourseById: async (id) => {
     const response = await api.get(`/courses/${id}`);
