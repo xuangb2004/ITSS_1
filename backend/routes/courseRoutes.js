@@ -39,8 +39,8 @@ const optionalVerifyToken = (req, res, next) => {
 
 // --- CÁC ROUTE ---
 
+router.get("/search", courseController.searchCourses); // Đưa Search lên đầu nhóm
 router.get("/", courseController.getAllCourses);
-router.get("/search", courseController.searchCourses);
 router.get("/recommended", courseController.getRecommendedCourses);
 router.get("/trending", courseController.getTrendingCourses);
 
