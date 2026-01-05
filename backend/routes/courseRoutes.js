@@ -42,11 +42,11 @@ router.get("/search", courseController.searchCourses);
 router.get("/", courseController.getAllCourses);
 router.get("/recommended", courseController.getRecommendedCourses);
 router.get("/trending", courseController.getTrendingCourses);
+router.get("/my-published", verifyToken, courseController.getInstructorCourses);
 
 
 // Route cần login
 router.post("/progress", verifyToken, courseController.markLessonComplete);
-router.get("/my-published", verifyToken, courseController.getInstructorCourses);
 router.put("/:id", verifyToken, courseController.updateCourse);
 router.delete("/:id", verifyToken, courseController.deleteCourse);
 
