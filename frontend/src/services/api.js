@@ -107,15 +107,10 @@ export const courseService = {
     const response = await api.get(`/courses/trending?limit=${limit}`);
     return response.data;
   },
-  searchCourses: async (query) => {
-    // Ví dụ: /courses/search?q=React
-    const response = await api.get(`/courses/search?q=${encodeURIComponent(query)}`);
-    return response.data;
-  },
-  getCourseById: async (id) => {
-    const response = await api.get(`/courses/${id}`);
-    return response.data;
-  },
+searchCourses: async (query) => {
+  const response = await api.get(`/courses/search?q=${encodeURIComponent(query)}`);
+  return response.data;
+},
   markLessonComplete: async (data) => {
     const response = await api.post('/courses/progress', data);
     return response.data;
