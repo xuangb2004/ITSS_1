@@ -38,11 +38,11 @@ const optionalVerifyToken = (req, res, next) => {
 };
 
 // --- CÁC ROUTE ---
-
+router.get("/search", courseController.searchCourses);
 router.get("/", courseController.getAllCourses);
 router.get("/recommended", courseController.getRecommendedCourses);
 router.get("/trending", courseController.getTrendingCourses);
-router.get("/search", courseController.searchCourses);
+
 
 // Route cần login
 router.post("/progress", verifyToken, courseController.markLessonComplete);
