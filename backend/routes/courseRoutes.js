@@ -43,7 +43,7 @@ router.get("/search", courseController.searchCourses); // Đưa Search lên đ�
 router.get("/", courseController.getAllCourses);
 router.get("/recommended", courseController.getRecommendedCourses);
 router.get("/trending", courseController.getTrendingCourses);
-
+router.get("/:id", optionalVerifyToken, courseController.getCourseById);
 
 // Route cần login
 router.post("/progress", verifyToken, courseController.markLessonComplete);

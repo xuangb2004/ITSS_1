@@ -90,16 +90,17 @@ exports.getTrendingCourses = async (req, res) => {
 };
 
 // --- 4. Tìm kiếm khóa học ---
+// backend/controllers/courseController.js
+
 exports.searchCourses = async (req, res) => {
   try {
-    const { q } = req.query; // Lấy từ khóa ?q=...
+    const { q } = req.query; // Lấy từ khóa từ ?q=...
     
     if (!q) {
-      return res.status(400).json({ success: false, message: "Vui lòng nhập từ khóa" });
+      return res.status(200).json({ success: true, courses: [] });
     }
 
-    // Tìm kiếm tương đối (LIKE) trong title hoặc description
-    // Lưu ý: %...% để tìm kiếm chứa chuỗi ký tự
+    // Truy vấn tìm kiếm theo tiêu đề hoặc mô tả
     const sql = `
       SELECT c.*, u.name as instructor_name 
       FROM courses c
@@ -117,8 +118,8 @@ exports.searchCourses = async (req, res) => {
       courses,
     });
   } catch (error) {
-    console.error("Lỗi tìm kiếm:", error);
-    res.status(500).json({ success: false, message: "Lỗi Server" });
+    console.error("Search error:", error);
+    res.status(500).json({ success: false, message: "Internal Server Error" });
   }
 };
 
