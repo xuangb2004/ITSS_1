@@ -99,59 +99,76 @@ export const notificationService = {
 };
 
 export const courseService = {
+  // 1. Lấy đề xuất (Dùng cho Home)
   getRecommendedCourses: async (limit = 4) => {
     const response = await api.get(`/courses/recommended?limit=${limit}`);
     return response.data; 
   },
+
+  // 2. Lấy xu hướng (Dùng cho Home)
   getTrendingCourses: async (limit = 4) => {
     const response = await api.get(`/courses/trending?limit=${limit}`);
     return response.data;
   },
-searchCourses: async (query) => {
-  const response = await api.get(`/courses/search?q=${encodeURIComponent(query)}`);
-  return response.data;
-},
-  markLessonComplete: async (data) => {
-    const response = await api.post('/courses/progress', data);
+
+  // 3. Tìm kiếm khóa học (Đã khớp param 'q' với Backend)
+  searchCourses: async (query) => {
+    const response = await api.get(`/courses/search?q=${encodeURIComponent(query)}`);
     return response.data;
   },
-  getPublishedCourses: async () => {
-    const response = await api.get('/courses/my-published');
+
+  // 4. QUAN TRỌNG: Thêm hàm lấy chi tiết khóa học (Khắc phục lỗi TypeError)
+  getCourseById: async (id) => {
+    const response = await api.get(`/courses/${id}`);
     return response.data;
   },
-  updateCourse: async (id, data) => {
-    const response = await api.put(`/courses/${id}`, data);
-    return response.data;
-  },
-  deleteCourse: async (id) => {
-    const response = await api.delete(`/courses/${id}`);
-    return response.data;
-  },
-  getReviews: async (courseId) => {
-    const response = await api.get(`/courses/${courseId}/reviews`);
-    return response.data;
-  },
-  addReview: async (courseId, data) => { // data: { rating, comment }
-    const response = await api.post(`/courses/${courseId}/reviews`, data);
-    return response.data;
-  },
+
+  // 5. Lấy tất cả và lọc theo danh mục
   getAllCourses: async (categoryId = null) => {
-    // Nếu có categoryId thì gửi kèm, nếu không thì thôi
     const url = categoryId && categoryId !== 'all' 
       ? `/courses?category_id=${categoryId}` 
       : '/courses';
     const response = await api.get(url);
     return response.data;
   },
-  getAllCategories: async () => {
-    const response = await api.get('/categories');
+
+  // 6. Quản lý tiến độ bài học
+  markLessonComplete: async (data) => {
+    const response = await api.post('/courses/progress', data);
     return response.data;
   },
+
+  // 7. Các hàm dành cho Giảng viên (Instructor)
+  getPublishedCourses: async () => {
+    const response = await api.get('/courses/my-published');
+    return response.data;
+  },
+
   createCourse: async (formData) => {
-    // Gửi FormData (bao gồm file và text)
     const response = await api.post('/courses', formData, {
       headers: { "Content-Type": "multipart/form-data" },
     });
+    return response.data;
+  },
+
+  updateCourse: async (id, data) => {
+    const response = await api.put(`/courses/${id}`, data);
+    return response.data;
+  },
+
+  deleteCourse: async (id) => {
+    const response = await api.delete(`/courses/${id}`);
+    return response.data;
+  },
+
+  // 8. Đánh giá và nhận xét
+  getReviews: async (courseId) => {
+    const response = await api.get(`/courses/${courseId}/reviews`);
+    return response.data;
+  },
+
+  addReview: async (courseId, data) => {
+    const response = await api.post(`/courses/${courseId}/reviews`, data);
     return response.data;
   }
 };
