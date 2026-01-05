@@ -133,22 +133,26 @@ function CourseDetail() {
   return (
     <div className="course-detail-container">
       {/* ... (PHẦN HERO GIỮ NGUYÊN) ... */}
-      <div className="back-to-home" style={{ marginBottom: '20px' }}>
+      <div className="top-nav-back" style={{ padding: '10px 0' }}>
       <button 
         onClick={() => navigate('/')} 
-        style={{ 
-          background: 'none', 
-          border: 'none', 
-          color: '#2563eb', 
-          cursor: 'pointer', 
-          display: 'flex', 
-          alignItems: 'center', 
+        style={{
+          display: 'flex',
+          alignItems: 'center',
           gap: '8px',
-          fontWeight: '500' 
+          background: '#f3f4f6',
+          border: '1px solid #ddd',
+          padding: '8px 15px',
+          borderRadius: '20px',
+          cursor: 'pointer',
+          color: '#374151',
+          transition: 'all 0.3s'
         }}
+        onMouseOver={(e) => e.target.style.background = '#e5e7eb'}
+        onMouseOut={(e) => e.target.style.background = '#f3f4f6'}
       >
-        <i className="fa-solid fa-arrow-left"></i>
-        ホームに戻る (Quay về trang chủ)
+        <i className="fa-solid fa-house"></i>
+        <span>ホーム (Trang chủ)</span>
       </button>
     </div>
       <div className="hero" style={{ display: 'flex', gap: '40px', alignItems: 'flex-start', flexWrap: 'wrap' }}>
