@@ -91,26 +91,35 @@ exports.getTrendingCourses = async (req, res) => {
 
 // --- 4. Tìm kiếm khóa học ---
 exports.searchCourses = async (req, res) => {
-    try {
-        const { search } = req.query;
-        if (!search) return res.json({ results: [] });
-        const sql = `
-            SELECT c.*, u.name as instructor_name,
-                   CAST(COALESCE(AVG(r.rating), 0) AS DECIMAL(2,1)) as average_rating,
-                   COUNT(r.review_id) as review_count
-            FROM courses c
-            LEFT JOIN instructors i ON c.instructor_id = i.instructor_id
-            LEFT JOIN users u ON i.user_id = u.user_id
-            LEFT JOIN reviews r ON c.course_id = r.course_id
-            WHERE c.title LIKE ? OR c.description LIKE ?
-            GROUP BY c.course_id
-        `;
-        const [results] = await db.query(sql, [`%${search}%`, `%${search}%`]);
-        res.json({ results });
-    } catch (err) {
-        console.error(err);
-        res.status(500).json({ message: "Lỗi tìm kiếm" });
+  try {
+    const { q } = req.query; // Lấy từ khóa ?q=...
+    
+    if (!q) {
+      return res.status(400).json({ success: false, message: "Vui lòng nhập từ khóa" });
     }
+
+    // Tìm kiếm tương đối (LIKE) trong title hoặc description
+    // Lưu ý: %...% để tìm kiếm chứa chuỗi ký tự
+    const sql = `
+      SELECT c.*, u.name as instructor_name 
+      FROM courses c
+      LEFT JOIN users u ON c.instructor_id = u.user_id
+      WHERE c.title LIKE ? OR c.description LIKE ?
+      ORDER BY c.created_at DESC
+    `;
+    
+    const searchTerm = `%${q}%`;
+    const [courses] = await db.query(sql, [searchTerm, searchTerm]);
+
+    res.status(200).json({
+      success: true,
+      count: courses.length,
+      courses,
+    });
+  } catch (error) {
+    console.error("Lỗi tìm kiếm:", error);
+    res.status(500).json({ success: false, message: "Lỗi Server" });
+  }
 };
 
 // --- 5. Lấy khóa học của giảng viên ---

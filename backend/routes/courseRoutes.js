@@ -41,6 +41,7 @@ const optionalVerifyToken = (req, res, next) => {
 
 router.get("/", courseController.getAllCourses);
 router.get("/recommended", courseController.getRecommendedCourses);
+router.get('/search', courseController.searchCourses);
 router.get("/trending", courseController.getTrendingCourses);
 router.get("/search", courseController.searchCourses);
 
