@@ -153,7 +153,7 @@ function Home() {
             className={`filter-btn ${selectedCategory === 'all' ? 'active' : ''}`}
             onClick={() => handleCategoryClick('all')}
           >
-            すべて (Tất cả)
+            すべて 
           </button>
 
           {/* Render danh mục từ DB */}
@@ -204,7 +204,7 @@ function Home() {
                 ))
               ) : (
                 <p className="no-courses" style={{textAlign:'center', gridColumn:'1/-1', color:'#666'}}>
-                    このカテゴリにはまだコースがありません。(Chưa có khóa học nào)
+                    このカテゴリにはまだコースがありません。
                 </p>
               )}
             </div>
