@@ -40,10 +40,10 @@ const optionalVerifyToken = (req, res, next) => {
 // --- CÁC ROUTE ---
 
 router.get("/", courseController.getAllCourses);
-router.get("/recommended", courseController.getRecommendedCourses);
-router.get('/search', courseController.searchCourses);
-router.get("/trending", courseController.getTrendingCourses);
 router.get("/search", courseController.searchCourses);
+router.get("/recommended", courseController.getRecommendedCourses);
+router.get("/trending", courseController.getTrendingCourses);
+
 
 // Route cần login
 router.post("/progress", verifyToken, courseController.markLessonComplete);
