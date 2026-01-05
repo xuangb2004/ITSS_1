@@ -133,6 +133,24 @@ function CourseDetail() {
   return (
     <div className="course-detail-container">
       {/* ... (PHẦN HERO GIỮ NGUYÊN) ... */}
+      <div className="back-to-home" style={{ marginBottom: '20px' }}>
+      <button 
+        onClick={() => navigate('/')} 
+        style={{ 
+          background: 'none', 
+          border: 'none', 
+          color: '#2563eb', 
+          cursor: 'pointer', 
+          display: 'flex', 
+          alignItems: 'center', 
+          gap: '8px',
+          fontWeight: '500' 
+        }}
+      >
+        <i className="fa-solid fa-arrow-left"></i>
+        ホームに戻る (Quay về trang chủ)
+      </button>
+    </div>
       <div className="hero" style={{ display: 'flex', gap: '40px', alignItems: 'flex-start', flexWrap: 'wrap' }}>
         <div className="hero-left" style={{ flex: 1, minWidth: '300px' }}>
           <h1>{course.title}</h1>
