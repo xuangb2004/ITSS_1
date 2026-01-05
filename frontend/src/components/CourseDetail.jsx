@@ -152,7 +152,7 @@ function CourseDetail() {
         onMouseOut={(e) => e.target.style.background = '#f3f4f6'}
       >
         <i className="fa-solid fa-house"></i>
-        <span>ホーム (Trang chủ)</span>
+        <span>ホーム </span>
       </button>
     </div>
       <div className="hero" style={{ display: 'flex', gap: '40px', alignItems: 'flex-start', flexWrap: 'wrap' }}>
