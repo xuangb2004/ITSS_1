@@ -74,7 +74,7 @@ function CartPage() {
         }}
       >
         <i className="fa-solid fa-house"></i>
-        <span>ホーム (Trang chủ)</span>
+        <span>ホーム </span>
       </button>
     </div>
 

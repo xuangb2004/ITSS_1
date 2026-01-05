@@ -97,7 +97,15 @@ function Dashboard() {
           <h2>アカウント</h2>
         </div>
         <nav className="sidebar-nav">
-          
+          {/* --- NÚT HOME (MỚI THÊM) --- */}
+          <button 
+            className="nav-item" 
+            onClick={() => navigate('/')}
+            style={{ borderBottom: '1px solid #eee', marginBottom: '10px', paddingBottom: '15px' }}
+          >
+            <i className="fa-solid fa-house" style={{ color: '#10b981' }}></i> 
+            <span style={{ fontWeight: 'bold' }}>ホームに戻る</span>
+          </button>
           {/* 1. Nút Hồ sơ (Luôn hiện) */}
           <button 
             className={`nav-item ${activeTab === 'profile' ? 'active' : ''}`}
