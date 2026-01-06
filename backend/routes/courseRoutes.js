@@ -38,17 +38,17 @@ const optionalVerifyToken = (req, res, next) => {
 };
 
 // --- CÁC ROUTE ---
-router.get("/search", courseController.searchCourses);
+
+router.get("/search", courseController.searchCourses); // Đưa Search lên đầu nhóm
 router.get("/", courseController.getAllCourses);
 router.get("/recommended", courseController.getRecommendedCourses);
 router.get("/trending", courseController.getTrendingCourses);
-router.get("/my-published", verifyToken, courseController.getInstructorCourses);
-
 
 // Route cần login
 router.post("/progress", verifyToken, courseController.markLessonComplete);
 router.put("/:id", verifyToken, courseController.updateCourse);
 router.delete("/:id", verifyToken, courseController.deleteCourse);
+router.get("/:id", optionalVerifyToken, courseController.getCourseById);
 
 // 👇👇 2 ROUTE MỚI CHO REVIEW (Thêm vào đây) 👇👇
 router.get("/:id/reviews", courseController.getCourseReviews);
