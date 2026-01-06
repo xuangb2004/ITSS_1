@@ -30,18 +30,25 @@ exports.getCart = async (req, res) => {
 };
 
 // Thêm vào giỏ
+// backend/controllers/cartController.js
+
 exports.addToCart = async (req, res) => {
   try {
     const userId = req.user.userId;
-    const { courseId } = req.body;
+    // Lấy một trong hai tên biến để đảm bảo an toàn
+    const courseId = req.body.courseId || req.body.course_id; 
 
-    // Kiểm tra đã có chưa
+    if (!courseId) {
+      return res.status(400).json({ message: "Thiếu ID khóa học" });
+    }
+
+    // Kiểm tra đã có trong giỏ chưa
     const [exists] = await db.query("SELECT * FROM cart WHERE user_id = ? AND course_id = ?", [userId, courseId]);
     if (exists.length > 0) {
       return res.status(400).json({ message: "Khóa học đã có trong giỏ hàng" });
     }
 
-    // Kiểm tra đã mua chưa (đã enroll chưa)
+    // Kiểm tra đã mua chưa
     const [enrolled] = await db.query("SELECT * FROM enrollments WHERE user_id = ? AND course_id = ?", [userId, courseId]);
     if (enrolled.length > 0) {
       return res.status(400).json({ message: "Bạn đã sở hữu khóa học này rồi" });
@@ -50,7 +57,7 @@ exports.addToCart = async (req, res) => {
     await db.query("INSERT INTO cart (user_id, course_id) VALUES (?, ?)", [userId, courseId]);
     res.json({ message: "Đã thêm vào giỏ hàng" });
   } catch (err) {
-    console.error(err);
+    console.error("Lỗi Add to Cart:", err); // In lỗi ra log để debug trên Render
     res.status(500).json({ message: "Lỗi server" });
   }
 };
