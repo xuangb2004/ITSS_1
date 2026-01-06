@@ -73,12 +73,15 @@ function CourseDetail() {
   }, [id]);
 
   const handleAddToCart = async () => {
-    if (!user) { alert("ログインしてください"); return; }
-    try {
-      await cartService.addToCart(course.course_id);
-      alert("カートに追加しました！");
-    } catch (err) { alert(err.response?.data?.message || "カート追加エラー"); }
-  };
+  if (!user) { alert("ログインしてください"); return; }
+  try {
+    // Đảm bảo dùng course.course_id
+    await cartService.addToCart(course.course_id); 
+    alert("カートに追加しました！");
+  } catch (err) { 
+    alert(err.response?.data?.message || "カート追加エラー"); 
+  }
+};
 
   const handleMarkComplete = async () => {
     if (!user || !activeLesson) return;

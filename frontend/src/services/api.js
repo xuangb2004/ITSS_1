@@ -182,8 +182,9 @@ export const categoryService = {
 
 // --- MỚI THÊM ---
 export const cartService = {
-  addToCart: async (courseId) => {
-    const response = await api.post('/cart', { courseId });
+  addToCart: async (course_id) => {
+    // Đổi courseId thành course_id
+    const response = await api.post('/cart', { course_id }); 
     return response.data;
   },
   getCart: async () => {
