@@ -16,10 +16,7 @@ const getYouTubeId = (url) => {
 
 // 2. HÀM XỬ LÝ ẢNH
 const getImageUrl = (path) => {
-    // Nếu không có ảnh -> Trả về ảnh mặc định
     if (!path) return "https://placehold.co/400x200?text=No+Image";
-    
-    // Nếu là link online (http/https) -> Giữ nguyên
     if (path.startsWith('http')) return path;
     const cleanPath = path.startsWith('/') ? path : `/${path}`;
     return `${API_BASE_URL}${cleanPath}`;
