@@ -33,7 +33,7 @@ function CartPage({ cartItems = [], handleRemove, handleCheckout, totalPrice = 0
           }}
         >
           <i className="fa-solid fa-house"></i>
-          <span>ホーム (Trang chủ)</span>
+          <span>ホーム </span>
         </button>
       </div>
 
