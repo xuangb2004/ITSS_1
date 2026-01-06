@@ -73,7 +73,7 @@ function PublishedCourses() {
       <div style={{display:'flex', justifyContent:'space-between', alignItems:'center', marginBottom:'20px'}}>
         <h2>📚 登録されたコース</h2>
         <button onClick={() => navigate('/create-course')} className="btn-login-primary" style={{width: 'auto'}}>
-          <i className="fa-solid fa-plus"></i> 登録されたコース
+          <i className="fa-solid fa-plus"></i> 新しいコース
         </button>
       </div>
 
@@ -83,9 +83,15 @@ function PublishedCourses() {
             background: 'white', padding: '20px', borderRadius: '10px', boxShadow: '0 2px 5px rgba(0,0,0,0.1)',
             display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '15px'
           }}>
-            {/* Thông tin cơ bản */}
+            {/* Thông tin cơ bản - CLICK VÀO ĐÂY ĐỂ ĐẾN TRANG CHI TIẾT */}
             <div style={{flex: 1, minWidth: '300px'}}>
-              <h3 style={{margin: '0 0 5px 0', color: '#111827'}}>{course.title}</h3>
+              <h3 
+                style={{margin: '0 0 5px 0', color: '#2563eb', cursor: 'pointer', textDecoration: 'underline'}}
+                onClick={() => navigate(`/course/${course.course_id}`)}
+                title="クリックして詳細を表示"
+              >
+                {course.title} <i className="fa-solid fa-arrow-up-right-from-square" style={{fontSize: '14px', marginLeft: '5px'}}></i>
+              </h3>
               <p style={{margin: 0, color: '#6b7280', fontSize: '14px'}}>
                  価格: {course.price == 0 ? '無料' : `$${course.price}`} • レベル: {course.level}
               </p>
@@ -106,7 +112,7 @@ function PublishedCourses() {
                 onClick={() => openEditModal(course)}
                 style={{ background: '#f3f4f6', color: '#4b5563', border: 'none', padding: '8px 15px', borderRadius: '6px', cursor: 'pointer', display: 'flex', gap: '5px', alignItems: 'center' }}
               >
-                <i className="fa-solid fa-pen-to-square"></i> 修理
+                <i className="fa-solid fa-pen-to-square"></i> 編集
               </button>
 
               {/* Nút Xóa */}

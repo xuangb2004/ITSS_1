@@ -1,5 +1,6 @@
 import { createContext, useContext, useState, useEffect } from 'react'
 import { authService } from '../services/api'
+import axios from 'axios' // Nhớ import axios
 
 const AuthContext = createContext()
 
@@ -17,15 +18,15 @@ export const AuthProvider = ({ children }) => {
 
   useEffect(() => {
     // Kiểm tra token trong localStorage khi app khởi động
-    const token = localStorage.getItem('token')
     const userData = localStorage.getItem('user')
+    // Nếu bạn dùng Cookie (HttpOnly) thì không cần check 'token' ở localStorage
+    // Nhưng nếu logic cũ cần thì giữ nguyên check
     
-    if (token && userData) {
+    if (userData) {
       try {
         setUser(JSON.parse(userData))
       } catch (error) {
         console.error('Error parsing user data:', error)
-        localStorage.removeItem('token')
         localStorage.removeItem('user')
       }
     }
@@ -39,7 +40,7 @@ export const AuthProvider = ({ children }) => {
     } catch (error) {
       return {
         success: false,
-        message: error.response?.data?.message || '登録に失敗しました',
+        message: error.response?.data?.message || 'Đăng ký thất bại',
       }
     }
   }
@@ -47,26 +48,57 @@ export const AuthProvider = ({ children }) => {
   const signin = async (formData) => {
     try {
       const response = await authService.signin(formData)
-      const { token, user } = response
+      // Lưu ý: Backend của bạn trả về object User hay {token, user}?
+      // Code dưới đây giả định response trả về đúng format.
+      // Nếu backend set cookie, bạn chỉ cần lưu user info.
       
-      // Lưu token và user vào localStorage
-      localStorage.setItem('token', token)
-      localStorage.setItem('user', JSON.stringify(user))
+      const data = response.data || response; // Xử lý tùy vào authService trả về gì
       
-      setUser(user)
-      return { success: true, message: response.message }
+      localStorage.setItem('user', JSON.stringify(data))
+      setUser(data)
+      
+      return { success: true, message: "Đăng nhập thành công" }
     } catch (error) {
       return {
         success: false,
-        message: error.response?.data?.message || 'ログインに失敗しました',
+        message: error.response?.data || 'Đăng nhập thất bại',
       }
     }
   }
 
-  const signout = () => {
-    localStorage.removeItem('token')
-    localStorage.removeItem('user')
-    setUser(null)
+  // --- THÊM HÀM NÀY ĐỂ FIX LỖI ---
+  const loginWithGoogle = async (token) => {
+    try {
+      // Gọi trực tiếp API backend
+      const res = await axios.post("http://localhost:8800/api/auth/google", { token });
+      
+      // Lưu thông tin user vào state và localStorage
+      setUser(res.data);
+      localStorage.setItem("user", JSON.stringify(res.data));
+      
+      // Nếu backend trả về token string (ngoài cookie), hãy lưu nó:
+      // localStorage.setItem("token", res.data.token);
+
+      return { success: true };
+    } catch (error) {
+      console.error("Google Auth Error:", error);
+      return { 
+        success: false, 
+        message: error.response?.data || "Đăng nhập Google thất bại" 
+      };
+    }
+  };
+  // --------------------------------
+
+  const signout = async () => {
+    try {
+        await axios.post("http://localhost:8800/api/auth/logout");
+        localStorage.removeItem('token')
+        localStorage.removeItem('user')
+        setUser(null)
+    } catch (err) {
+        console.log(err);
+    }
   }
 
   const value = {
@@ -75,6 +107,7 @@ export const AuthProvider = ({ children }) => {
     signup,
     signin,
     signout,
+    loginWithGoogle, // <-- Nhớ export hàm này ra
   }
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>

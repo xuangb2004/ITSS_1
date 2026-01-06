@@ -318,7 +318,7 @@ function TopicDetailView({ data, categories, onRefresh, onBack, searchQuery }) {
     };
     const handleLike = async (postId) => { await forumService.toggleLike(postId); onRefresh(); };
     const handleDelete = async (postId, isMainPost) => {
-      if (window.confirm(isMainPost ? "Chủ đề này và toàn bộ bình luận sẽ bị xóa?" : "Xóa bình luận này?")) {
+      if (window.confirm(isMainPost ? "このトピックとすべてのコメントは削除されますか?" : "このコメントを削除しますか?")) {
         try { if (isMainPost) { await forumService.deleteTopic(data.topic.topic_id); onBack(); } else { await forumService.deletePost(postId); onRefresh(); } } catch (error) { alert("Xóa thất bại"); }
       }
     }
@@ -329,10 +329,10 @@ function TopicDetailView({ data, categories, onRefresh, onBack, searchQuery }) {
     };
     const renderAttachment = (url) => {
       if (!url) return null; const fullUrl = `http://localhost:5001${url}`; const isImage = url.match(/\.(jpeg|jpg|gif|png)$/i);
-      return ( <div style={{ marginTop: '15px', padding: '10px', background: '#f8fafc', borderRadius: '8px', border: '1px solid #e2e8f0', display: 'inline-block' }}> {isImage ? ( <img src={fullUrl} alt="Attachment" style={{ maxWidth: '100%', maxHeight: '400px', borderRadius: '4px', display:'block' }} /> ) : ( <a href={fullUrl} target="_blank" rel="noopener noreferrer" style={{ display: 'flex', alignItems: 'center', gap: '8px', color: '#0f766e', textDecoration: 'none', fontWeight: '500' }}> <i className="fa-solid fa-paperclip"></i> Tải xuống tệp đính kèm </a> )} </div> );
+      return ( <div style={{ marginTop: '15px', padding: '10px', background: '#f8fafc', borderRadius: '8px', border: '1px solid #e2e8f0', display: 'inline-block' }}> {isImage ? ( <img src={fullUrl} alt="Attachment" style={{ maxWidth: '100%', maxHeight: '400px', borderRadius: '4px', display:'block' }} /> ) : ( <a href={fullUrl} target="_blank" rel="noopener noreferrer" style={{ display: 'flex', alignItems: 'center', gap: '8px', color: '#0f766e', textDecoration: 'none', fontWeight: '500' }}> <i className="fa-solid fa-paperclip"></i> 添付ファイルをダウンロードしてください。 </a> )} </div> );
     };
   
-    if (!mainPost) return <div>Đang tải...</div>;
+    if (!mainPost) return <div>読み込み中....</div>;
     return (
       <div className="topic-detail-wrapper" style={{ animation: 'fadeIn 0.3s ease-in' }}>
         <div className="main-topic-section" style={{ background: 'white', borderRadius: '12px', boxShadow: '0 4px 6px -1px rgba(0,0,0,0.1)', border: '1px solid #e2e8f0', overflow: 'hidden', marginBottom: '40px' }}>
@@ -348,7 +348,7 @@ function TopicDetailView({ data, categories, onRefresh, onBack, searchQuery }) {
                 <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
                     <div style={{ width: '45px', height: '45px', background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'white', fontWeight: 'bold', fontSize: '18px' }}>{mainPost.author_name ? mainPost.author_name.charAt(0).toUpperCase() : 'U'}</div>
                     <div><div style={{ fontWeight: 'bold', color: '#334155', fontSize: '16px' }}>{mainPost.author_name}</div><div style={{ fontSize: '13px', color: '#94a3b8' }}>トピック作成者</div></div>
-                    {user && String(user.id) === String(mainPost.user_id) && <button onClick={() => handleDelete(mainPost.post_id, true)} style={{ marginLeft: 'auto', background: '#fee2e2', color: '#ef4444', border: 'none', padding: '8px 15px', borderRadius: '6px', cursor: 'pointer', fontWeight: '500' }}><i className="fa-solid fa-trash"></i> Xóa bài</button>}
+                    {user && String(user.id) === String(mainPost.user_id) && <button onClick={() => handleDelete(mainPost.post_id, true)} style={{ marginLeft: 'auto', background: '#fee2e2', color: '#ef4444', border: 'none', padding: '8px 15px', borderRadius: '6px', cursor: 'pointer', fontWeight: '500' }}><i className="fa-solid fa-trash"></i> 投稿を削除</button>}
                 </div>
             </div>
             <div style={{ padding: '30px', fontSize: '17px', lineHeight: '1.8', color: '#334155', minHeight: '150px' }}><div style={{ whiteSpace: 'pre-wrap' }}><HighlightText text={mainPost.content} highlight={searchQuery} /></div>{renderAttachment(mainPost.attachment_url)}</div>
@@ -375,9 +375,9 @@ function TopicDetailView({ data, categories, onRefresh, onBack, searchQuery }) {
                                         {renderAttachment(comment.attachment_url)}
                                     </div>
                                     <div style={{ display: 'flex', gap: '15px', marginTop: '5px', marginLeft: '5px', fontSize: '12px', color: '#64748b' }}>
-                                        <span onClick={() => handleLike(comment.post_id)} style={{ cursor: 'pointer', fontWeight: comment.is_liked ? 'bold' : 'normal', color: comment.is_liked ? '#e11d48' : 'inherit' }}>{comment.is_liked ? 'Đã thích' : 'Thích'} ({comment.like_count})</span>
-                                        <span onClick={() => handleQuoteReply(comment.author_name)} style={{ cursor: 'pointer' }}>Trả lời</span>
-                                        {isOwner && <span onClick={() => handleDelete(comment.post_id, false)} style={{ cursor: 'pointer', color: '#ef4444' }}>Xóa</span>}
+                                        <span onClick={() => handleLike(comment.post_id)} style={{ cursor: 'pointer', fontWeight: comment.is_liked ? 'bold' : 'normal', color: comment.is_liked ? '#e11d48' : 'inherit' }}>{comment.is_liked ? '気に入った' : '好む'} ({comment.like_count})</span>
+                                        <span onClick={() => handleQuoteReply(comment.author_name)} style={{ cursor: 'pointer' }}>返事</span>
+                                        {isOwner && <span onClick={() => handleDelete(comment.post_id, false)} style={{ cursor: 'pointer', color: '#ef4444' }}>消去する</span>}
                                     </div>
                                 </div>
                             </div>
@@ -392,9 +392,9 @@ function TopicDetailView({ data, categories, onRefresh, onBack, searchQuery }) {
               <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '15px' }}><i className="fa-solid fa-pen-to-square" style={{ color: '#0f766e' }}></i><strong style={{ color: '#334155' }}>コメントを書いてください</strong></div>
               <form onSubmit={handleReply}>
                 <textarea ref={replyInputRef} value={replyContent} onChange={(e) => setReplyContent(e.target.value)} placeholder="ディスカッションに参加してください..." style={{ width: '100%', minHeight: '80px', padding: '15px', borderRadius: '8px', border: '1px solid #cbd5e1', resize: 'vertical', outline: 'none', fontSize: '15px' }} required onFocus={(e) => e.target.style.borderColor = '#0f766e'} onBlur={(e) => e.target.style.borderColor = '#cbd5e1'} />
-                {file && <div style={{ fontSize: '13px', color: '#0f766e', marginTop: '10px', background: '#f0fdfa', padding: '8px', borderRadius: '6px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}><span><i className="fa-solid fa-file"></i> {file.name}</span><span onClick={() => setFile(null)} style={{ cursor: 'pointer', color: '#ef4444' }} title="Xóa"><i className="fa-solid fa-xmark"></i></span></div>}
+                {file && <div style={{ fontSize: '13px', color: '#0f766e', marginTop: '10px', background: '#f0fdfa', padding: '8px', borderRadius: '6px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}><span><i className="fa-solid fa-file"></i> {file.name}</span><span onClick={() => setFile(null)} style={{ cursor: 'pointer', color: '#ef4444' }} title="消去する"><i className="fa-solid fa-xmark"></i></span></div>}
                 <div style={{ marginTop: '15px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                    <div style={{ position: 'relative' }}><input type="file" id="reply-file-upload" style={{ display: 'none' }} onChange={(e) => setFile(e.target.files[0])} /><label htmlFor="reply-file-upload" style={{ cursor: 'pointer', color: '#64748b', fontSize: '20px', padding: '5px' }} title="Đính kèm ảnh"><i className="fa-solid fa-image"></i></label></div>
+                    <div style={{ position: 'relative' }}><input type="file" id="reply-file-upload" style={{ display: 'none' }} onChange={(e) => setFile(e.target.files[0])} /><label htmlFor="reply-file-upload" style={{ cursor: 'pointer', color: '#64748b', fontSize: '20px', padding: '5px' }} title="添付画像"><i className="fa-solid fa-image"></i></label></div>
                     <button type="submit" className="btn-login-primary" style={{ width: 'auto', padding: '8px 25px', borderRadius: '20px' }}><i className="fa-solid fa-paper-plane" style={{ marginRight: '8px' }}></i> コメントを送信</button> 
                 </div>
               </form>
