@@ -1,20 +1,13 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
 
-function CartPage({ cartItems, handleRemove, handleCheckout, totalPrice }) {
+function CartPage({ cartItems = [], handleRemove, handleCheckout, totalPrice = 0 }) {
   const navigate = useNavigate();
-
-  // 1. KHAI BÁO LINK BACKEND
   const API_BASE_URL = "https://itss-1-pz9y.onrender.com";
 
-  // 2. ĐỊNH NGHĨA HÀM getImageUrl (Sửa lỗi ReferenceError)
   const getImageUrl = (thumbnailPath) => {
     if (!thumbnailPath) return "https://placehold.co/400x200?text=No+Image";
-    
-    // Nếu là link ảnh tuyệt đối (http) -> Giữ nguyên
     if (thumbnailPath.startsWith("http")) return thumbnailPath;
-
-    // Nếu là đường dẫn cục bộ -> Ghép với link backend
     const cleanPath = thumbnailPath.startsWith("/") ? thumbnailPath : `/${thumbnailPath}`;
     return `${API_BASE_URL}${cleanPath}`;
   };
