@@ -14,15 +14,13 @@ const getYouTubeId = (url) => {
     return (match && match[2].length === 11) ? match[2] : null;
 };
 
-// 2. HÀM XỬ LÝ ẢNH (Đã sửa)
+// 2. HÀM XỬ LÝ ẢNH
 const getImageUrl = (path) => {
     // Nếu không có ảnh -> Trả về ảnh mặc định
     if (!path) return "https://placehold.co/400x200?text=No+Image";
     
     // Nếu là link online (http/https) -> Giữ nguyên
     if (path.startsWith('http')) return path;
-
-    // Nếu là đường dẫn file (/uploads/...) -> Ghép link Backend vào
     const cleanPath = path.startsWith('/') ? path : `/${path}`;
     return `${API_BASE_URL}${cleanPath}`;
 };
@@ -53,7 +51,11 @@ function CourseDetail() {
         setCourse(courseData.course);
         setProgress(courseData.progress || 0);
         setCompletedLessons(courseData.completedMap || []);
-        setIsEnrolled(courseData.isEnrolled || false);
+        
+        // --- LOGIC QUYỀN SỞ HỮU ---
+        // Nếu user là giảng viên tạo khóa học -> coi như đã đăng ký (isEnrolled = true)
+        const isOwner = user && user.id === courseData.course.instructor_id;
+        setIsEnrolled(courseData.isEnrolled || isOwner);
 
         if(courseData.course.curriculum && courseData.course.curriculum.length > 0) {
             setActiveLesson(courseData.course.curriculum[0]);
@@ -70,18 +72,17 @@ function CourseDetail() {
       }
     };
     fetchData();
-  }, [id]);
+  }, [id, user]); // Thêm user vào dependency để cập nhật khi user thay đổi
 
   const handleAddToCart = async () => {
-  if (!user) { alert("ログインしてください"); return; }
-  try {
-    // Đảm bảo dùng course.course_id
-    await cartService.addToCart(course.course_id); 
-    alert("カートに追加しました！");
-  } catch (err) { 
-    alert(err.response?.data?.message || "カート追加エラー"); 
-  }
-};
+    if (!user) { alert("ログインしてください"); return; }
+    try {
+      await cartService.addToCart(course.course_id); 
+      alert("カートに追加しました！");
+    } catch (err) { 
+      alert(err.response?.data?.message || "カート追加エラー"); 
+    }
+  };
 
   const handleMarkComplete = async () => {
     if (!user || !activeLesson) return;
@@ -110,13 +111,11 @@ function CourseDetail() {
     }
   };
 
-  // Xử lý gửi bình luận
   const handleSubmitReview = async (e) => {
     e.preventDefault();
     if(!newComment.trim()) return;
     try {
         await courseService.addReview(course.course_id, { rating, comment: newComment });
-        // Reload reviews
         const reviewsData = await courseService.getReviews(course.course_id);
         setReviews(reviewsData.reviews || []);
         setNewComment("");
@@ -132,24 +131,19 @@ function CourseDetail() {
 
   const isFree = Number(course.price) === 0;
   const priceDisplay = isFree ? "無料" : `$${Number(course.price).toFixed(2)}`;
+  
+  // Xác định lại quyền sở hữu ở render để dùng cho UI
+  const isOwner = user && user.id === course.instructor_id;
 
   return (
     <div className="course-detail-container">
-      {/* ... (PHẦN HERO GIỮ NGUYÊN) ... */}
       <div className="top-nav-back" style={{ padding: '10px 0' }}>
       <button 
         onClick={() => navigate('/')} 
         style={{
-          display: 'flex',
-          alignItems: 'center',
-          gap: '8px',
-          background: '#f3f4f6',
-          border: '1px solid #ddd',
-          padding: '8px 15px',
-          borderRadius: '20px',
-          cursor: 'pointer',
-          color: '#374151',
-          transition: 'all 0.3s'
+          display: 'flex', alignItems: 'center', gap: '8px', background: '#f3f4f6',
+          border: '1px solid #ddd', padding: '8px 15px', borderRadius: '20px',
+          cursor: 'pointer', color: '#374151', transition: 'all 0.3s'
         }}
         onMouseOver={(e) => e.target.style.background = '#e5e7eb'}
         onMouseOut={(e) => e.target.style.background = '#f3f4f6'}
@@ -165,9 +159,10 @@ function CourseDetail() {
           <div className="hero-meta">
             <span>レベル： {course.level || 'Beginner'}</span> • 
             <span> 更新日： {new Date(course.created_at).toLocaleDateString()}</span>
+            {isOwner && <span style={{marginLeft: '15px', background:'#dbeafe', color:'#1e40af', padding:'2px 8px', borderRadius:'4px', fontSize:'12px'}}>講師所有</span>}
           </div>
           
-          {user && isEnrolled && (
+          {user && isEnrolled && !isOwner && (
             <div style={{width: '100%', background: 'rgba(255,255,255,0.1)', height: '8px', borderRadius: '4px', margin: '15px 0', border: '1px solid rgba(255,255,255,0.2)'}}>
                 <div style={{width: `${progress}%`, background: '#10b981', height: '100%', borderRadius: '4px', transition: 'width 0.5s'}}></div>
                 <p style={{color: '#10b981', fontSize: '13px', marginTop: '5px', textAlign: 'right', fontWeight: 'bold'}}>{progress}% 完了</p>
@@ -184,7 +179,9 @@ function CourseDetail() {
                     ) : (
                         <div style={{ padding: '60px 20px', background: '#1f2937', color: '#9ca3af', borderRadius: '8px', textAlign: 'center' }}><p>視聴するレッスンを選択してください。</p></div>
                     )}
-                    {activeLesson && (
+                    
+                    {/* Nút hoàn thành bài học (ẩn với Instructor để tránh log rác) */}
+                    {activeLesson && !isOwner && (
                        <div style={{marginTop: '15px', display: 'flex', justifyContent: 'flex-end'}}>
                            <button onClick={handleMarkComplete} disabled={completedLessons.includes(activeLesson.lesson_id)} style={{ padding: '10px 20px', background: completedLessons.includes(activeLesson.lesson_id) ? '#10b981' : '#2563eb', color: 'white', border: 'none', borderRadius: '6px', cursor: 'pointer', fontWeight: 'bold' }}>
                                {completedLessons.includes(activeLesson.lesson_id) ? <><i className="fa-solid fa-check"></i> 完了</> : "完了としてマークします。"}
@@ -194,7 +191,6 @@ function CourseDetail() {
                  </>
              ) : (
                  <div style={{ position: 'relative', borderRadius: '8px', overflow: 'hidden', border: '1px solid #ddd' }}>
-                     {/* 3. ẢNH PREVIEW (Đã áp dụng getImageUrl) */}
                      <img 
                         src={getImageUrl(course.thumbnail)} 
                         alt="Preview" 
@@ -212,14 +208,20 @@ function CourseDetail() {
 
         <div className="hero-right" style={{ width: '350px', flexShrink: 0 }}>
           <div className="course-card-sidebar" style={{ background: 'white', padding: '20px', borderRadius: '12px', boxShadow: '0 4px 12px rgba(0,0,0,0.1)' }}>
-            {/* 4. ẢNH SIDEBAR (Đã áp dụng getImageUrl) */}
             <img 
                 src={getImageUrl(course.thumbnail)} 
                 alt={course.title} 
                 style={{ width: '100%', borderRadius: '8px', marginBottom: '15px', aspectRatio: '16/9', objectFit: 'cover' }} 
                 onError={(e) => { e.target.onerror = null; e.target.src="https://placehold.co/400x200?text=No+Image" }} 
             />
-            {isEnrolled ? (
+            {/* Nếu là Giảng viên (Owner) -> Hiện thông báo quyền sở hữu */}
+            {isOwner ? (
+                 <div style={{ textAlign: 'center', padding: '20px 0' }}>
+                     <div style={{ fontSize: '40px', color: '#3b82f6', marginBottom: '10px' }}><i className="fa-solid fa-user-shield"></i></div>
+                     <h3 style={{ color: '#1e40af', margin: '0' }}>講師用プレビュー</h3>
+                     <p style={{color: '#6b7280', fontSize: '14px', marginTop: '5px'}}>あなたはコースの所有者です。</p>
+                 </div>
+            ) : isEnrolled ? (
                  <div style={{ textAlign: 'center', padding: '20px 0' }}>
                      <div style={{ fontSize: '40px', color: '#10b981', marginBottom: '10px' }}><i className="fa-solid fa-circle-check"></i></div>
                      <h3 style={{ color: '#065f46', margin: '0' }}>登録済み</h3>
@@ -241,7 +243,6 @@ function CourseDetail() {
       <div className="course-main-content" style={{ marginTop: '40px' }}>
         <div className="content-col" style={{ width: '100%' }}>
           
-          {/* NỘI DUNG BÀI HỌC */}
           <section className="block-section" style={{marginBottom: '40px'}}>
             <h2>内容</h2>
             <div className="curriculum">
@@ -259,12 +260,11 @@ function CourseDetail() {
             </div>
           </section>
 
-          {/* --- KHU VỰC BÌNH LUẬN / ĐÁNH GIÁ (MỚI) --- */}
           <section className="block-section" id="reviews">
             <h2 style={{borderBottom: '2px solid #eee', paddingBottom: '10px', marginBottom: '20px'}}>評価 ({reviews.length})</h2>
             
-            {/* Form nhập bình luận (Chỉ hiện nếu đã đăng ký) */}
-            {isEnrolled && (
+            {/* Chỉ hiện form đánh giá nếu Đã đăng ký và KHÔNG PHẢI CHỦ SỞ HỮU */}
+            {isEnrolled && !isOwner && (
                 <div style={{ marginBottom: '30px', background: '#f9fafb', padding: '20px', borderRadius: '8px' }}>
                     <h4 style={{margin: '0 0 10px 0'}}>あなたの評価を書く</h4>
                     <form onSubmit={handleSubmitReview}>
@@ -281,7 +281,7 @@ function CourseDetail() {
                         <textarea 
                             value={newComment} 
                             onChange={e => setNewComment(e.target.value)} 
-                            placeholder="Chia sẻ cảm nghĩ của bạn về khóa học..." 
+                            placeholder="コースについてのご意見をお聞かせください..." 
                             style={{width: '100%', minHeight: '80px', padding: '10px', borderRadius: '6px', border: '1px solid #ddd', marginBottom: '10px'}}
                             required
                         />
@@ -290,7 +290,6 @@ function CourseDetail() {
                 </div>
             )}
 
-            {/* Danh sách bình luận */}
             <div className="reviews-list">
                 {reviews.length === 0 ? (
                     <p style={{color: '#666', fontStyle: 'italic'}}>まだ評価がありません。</p>
