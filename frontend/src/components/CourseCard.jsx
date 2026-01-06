@@ -71,7 +71,7 @@ function CourseCard({ course }) {
         </div>
         
         <div className="course-price" style={{color: isFree ? '#16a34a' : '#333'}}>
-          {isFree ? "Miễn phí" : `$${Number(course.price).toFixed(2)}`}
+          {isFree ? "無料" : `$${Number(course.price).toFixed(2)}`}
         </div>
       </div>
     </div>
